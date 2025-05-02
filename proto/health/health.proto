@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package yourapp.health;
+import "google/api/annotations.proto";
+
+option go_package = "yourapp/pb/health;health";
+
+// HealthService defines liveness/readiness checks.
+service HealthService {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {
+    option (google.api.http) = {
+      get: "/health"
+    };
+  };
+}
+
+message HealthCheckRequest {
+}
+
+message HealthCheckResponse {
+}

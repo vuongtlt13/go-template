@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package yourapp.auth;
+
+import "google/api/annotations.proto";
+import "envoyproxy/validate/validate.proto"; // Import PGV
+
+option go_package = "yourapp/pb/auth;auth";
+
+service AuthService {
+  rpc Login(LoginRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/auth/login"
+      body: "*"
+    };
+  }
+
+  rpc Register(RegisterRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/auth/register"
+      body: "*"
+    };
+  }
+}
+
+message LoginRequest {
+  string email = 1 [(validate.rules).string.email = true]; // Validate email format
+  string password = 2 [(validate.rules).string.min_len = 8]; // Password should have min 8 characters
+}
+
+message RegisterRequest {
+  string email = 1 [(validate.rules).string.email = true]; // Validate email format
+  string password = 2 [(validate.rules).string.min_len = 8]; // Password should have min 8 characters
+  string name = 3 [(validate.rules).string.min_len = 1]; // Name is required
+}
+
+message AuthResponse {
+  string access_token = 1;
+}
