@@ -1,12 +1,10 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"yourapp/internal/core/model"
 )
 
 type Role struct {
-	gorm.Model
 	model.BaseModel
 	Name        string        `gorm:"size:255;not null"`
 	Code        string        `gorm:"size:31;unique;not null"`

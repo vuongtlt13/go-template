@@ -1,12 +1,10 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"yourapp/internal/core/model"
 )
 
 type UserRole struct {
-	gorm.Model
 	model.BaseModel
 	UserID uint64 `gorm:"not null;index:uix_user_role,unique"`
 	RoleID uint64 `gorm:"not null;index:uix_user_role,unique"`

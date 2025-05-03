@@ -9,7 +9,6 @@ import (
 )
 
 type User struct {
-	gorm.Model
 	model.BaseModel
 	model.SoftDeleteModel
 	Email    string `gorm:"uniqueIndex;not null" json:"email"`
