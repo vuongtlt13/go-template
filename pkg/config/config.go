@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/caarlos0/env/v11"
 	"sync"
 	"time"
 	"yourapp/pkg/logger"
+
+	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
@@ -24,7 +25,8 @@ func (c *Config) IsProduction() bool {
 }
 
 type ServerConfig struct {
-	Port int `env:"PORT" envDefault:"8080"`
+	UserPort  int `env:"USER_PORT" envDefault:"8080"`
+	AdminPort int `env:"ADMIN_PORT" envDefault:"8081"`
 }
 
 type DBConfig struct {

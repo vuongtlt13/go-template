@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package yourapp.admin;
+
+import "google/api/annotations.proto";
+import "envoyproxy/validate/validate.proto";
+
+option go_package = "yourapp/pb/admin;admin";
+
+service RoleService {
+  rpc CreateRole(CreateRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      post: "/admin/roles"
+      body: "*"
+    };
+  }
+
+  rpc GetRole(GetRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      get: "/admin/roles/{id}"
+    };
+  }
+
+  rpc UpdateRole(UpdateRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      put: "/admin/roles/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
+    option (google.api.http) = {
+      delete: "/admin/roles/{id}"
+    };
+  }
+
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
+    option (google.api.http) = {
+      get: "/admin/roles"
+    };
+  }
+}
+
+message Role {
+  uint64 id = 1;
+  string code = 2 [(validate.rules).string.min_len = 1];
+  string name = 3 [(validate.rules).string.min_len = 1];
+  string description = 4;
+}
+
+message CreateRoleRequest {
+  string code = 1 [(validate.rules).string.min_len = 1];
+  string name = 2 [(validate.rules).string.min_len = 1];
+  string description = 3;
+}
+
+message GetRoleRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message UpdateRoleRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  string code = 2 [(validate.rules).string.min_len = 1];
+  string name = 3 [(validate.rules).string.min_len = 1];
+  string description = 4;
+}
+
+message DeleteRoleRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DeleteRoleResponse {
+  bool success = 1;
+}
+
+message ListRolesRequest {
+  uint32 page = 1 [(validate.rules).uint32.gt = 0];
+  uint32 page_size = 2 [(validate.rules).uint32.gt = 0];
+}
+
+message ListRolesResponse {
+  repeated Role roles = 1;
+  uint32 total = 2;
+}
+
+message RoleResponse {
+  Role role = 1;
+} 

@@ -2,20 +2,26 @@ package model
 
 import (
 	"time"
-	"yourapp/internal/core/model"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
+// User represents a system user
 type User struct {
-	model.BaseModel
-	model.SoftDeleteModel
-	Email    string `gorm:"uniqueIndex;not null" json:"email"`
-	Password string `gorm:"not null" json:"-"`
-	FullName string `gorm:"not null" json:"full_name"`
+	ID        uint64         `gorm:"primarykey" json:"id"`
+	Email     string         `gorm:"size:100;not null;uniqueIndex" json:"email"`
+	Password  string         `gorm:"size:100;not null" json:"-"`
+	FirstName string         `gorm:"size:50" json:"first_name"`
+	LastName  string         `gorm:"size:50" json:"last_name"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Roles     []Role         `gorm:"many2many:user_roles;" json:"roles,omitempty"`
 }
 
+// HashPassword hashes the user's password
 func (u *User) HashPassword(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -25,6 +31,7 @@ func (u *User) HashPassword(password string) error {
 	return nil
 }
 
+// CheckPassword checks if the provided password matches the hashed password
 func (u *User) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }

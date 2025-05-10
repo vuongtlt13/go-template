@@ -1,24 +1,27 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
+	"log"
+	"os"
 	"yourapp/cmd"
+
+	"github.com/joho/godotenv"
+
+	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "app",
-	Short: "User management application with background jobs",
-	Long: `A user management application that provides authentication, user management,
-and background job processing using Asynq.`,
+func init() {
+	// Load .env file if it exists
+	if err := godotenv.Load(); err != nil {
+		log.Println(".env file not found or could not be loaded (this is fine if running in production)")
+	}
 }
 
 func main() {
-	// Add subcommands
-	rootCmd.AddCommand(cmd.ServerCmd)
-	rootCmd.AddCommand(cmd.MigrateCmd)
-	//rootCmd.AddCommand(cmd.JobCmd)
+	rootCmd := &cobra.Command{Use: "yourapp"}
+	rootCmd.AddCommand(cmd.AdminCmd)
+	rootCmd.AddCommand(cmd.UserCmd) // Optional: keep if you want user server support
 	if err := rootCmd.Execute(); err != nil {
-		panic(err)
+		os.Exit(1)
 	}
 }

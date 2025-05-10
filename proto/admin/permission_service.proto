@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package yourapp.admin;
+
+import "google/api/annotations.proto";
+import "envoyproxy/validate/validate.proto";
+
+option go_package = "yourapp/pb/admin;admin";
+
+service PermissionService {
+  rpc CreatePermission(CreatePermissionRequest) returns (PermissionResponse) {
+    option (google.api.http) = {
+      post: "/admin/permissions"
+      body: "*"
+    };
+  }
+
+  rpc GetPermission(GetPermissionRequest) returns (PermissionResponse) {
+    option (google.api.http) = {
+      get: "/admin/permissions/{id}"
+    };
+  }
+
+  rpc UpdatePermission(UpdatePermissionRequest) returns (PermissionResponse) {
+    option (google.api.http) = {
+      put: "/admin/permissions/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeletePermission(DeletePermissionRequest) returns (DeletePermissionResponse) {
+    option (google.api.http) = {
+      delete: "/admin/permissions/{id}"
+    };
+  }
+
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/admin/permissions"
+    };
+  }
+}
+
+message Permission {
+  uint64 id = 1;
+  string code = 2 [(validate.rules).string.min_len = 1];
+  string name = 3 [(validate.rules).string.min_len = 1];
+  string description = 4;
+  string service = 5 [(validate.rules).string.min_len = 1];
+  string method = 6 [(validate.rules).string.min_len = 1];
+}
+
+message CreatePermissionRequest {
+  string code = 1 [(validate.rules).string.min_len = 1];
+  string name = 2 [(validate.rules).string.min_len = 1];
+  string description = 3;
+  string service = 4 [(validate.rules).string.min_len = 1];
+  string method = 5 [(validate.rules).string.min_len = 1];
+}
+
+message GetPermissionRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message UpdatePermissionRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  string code = 2 [(validate.rules).string.min_len = 1];
+  string name = 3 [(validate.rules).string.min_len = 1];
+  string description = 4;
+  string service = 5 [(validate.rules).string.min_len = 1];
+  string method = 6 [(validate.rules).string.min_len = 1];
+}
+
+message DeletePermissionRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DeletePermissionResponse {
+  bool success = 1;
+}
+
+message ListPermissionsRequest {
+  uint32 page = 1 [(validate.rules).uint32.gt = 0];
+  uint32 page_size = 2 [(validate.rules).uint32.gt = 0];
+}
+
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+  uint32 total = 2;
+}
+
+message PermissionResponse {
+  Permission permission = 1;
+} 

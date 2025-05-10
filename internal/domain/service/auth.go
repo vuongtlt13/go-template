@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"gorm.io/gorm"
+	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
 	"yourapp/pkg/auth"
 	"yourapp/pkg/database"
+
+	"gorm.io/gorm"
 )
 
 type Credential struct {
@@ -16,33 +17,74 @@ type Credential struct {
 
 // AuthService defines the auth service interface
 type AuthService interface {
-	Login(ctx context.Context, credential Credential) (string, error)
+	Login(ctx context.Context, cred Credential) (string, error)
+	Register(ctx context.Context, cred Credential) error
 }
 
 // authServiceImpl implements the UserService interface
-type authServiceImpl struct {
+type authService struct {
 	db         *gorm.DB
 	userRepo   repository.UserRepository
 	jwtManager *auth.JWTManager
 }
 
-func (a authServiceImpl) Login(ctx context.Context, credential Credential) (string, error) {
-	user, err := a.userRepo.FindByEmail(ctx, credential.Email, a.db)
-	if err != nil {
-		return "", fmt.Errorf("error when finding user: %w", err)
+var (
+	authServiceInstance *authService
+)
+
+// NewAuthService creates a new auth service using singleton instances
+func NewAuthService() AuthService {
+	if authServiceInstance == nil {
+		authServiceInstance = &authService{
+			db:         database.GetDatabase(),
+			userRepo:   repository.NewUserRepository(),
+			jwtManager: auth.GetJWTManager(),
+		}
 	}
+	return authServiceInstance
+}
+
+func (a *authService) Login(ctx context.Context, cred Credential) (string, error) {
+	user, err := a.userRepo.GetByEmail(ctx, cred.Email)
+	if err != nil {
+		return "", err
+	}
+
+	if !user.IsActive {
+		return "", err
+	}
+
+	// Verify password
+	if err := user.CheckPassword(cred.Password); err != nil {
+		return "", err
+	}
+
+	// Generate JWT token
 	token, err := a.jwtManager.GenerateToken(user.ID)
 	if err != nil {
-		return "", fmt.Errorf("error when generating token: %w", err)
+		return "", err
 	}
+
 	return token, nil
 }
 
-// NewAuthService creates a new user service instance
-func NewAuthService() AuthService {
-	return &authServiceImpl{
-		userRepo:   repository.NewUserRepository(),
-		jwtManager: auth.GetJWTManager(),
-		db:         database.GetDatabase(),
+func (a *authService) Register(ctx context.Context, cred Credential) error {
+	// Create user
+	user := &model.User{
+		Email:    cred.Email,
+		Password: cred.Password,
+		IsActive: true,
 	}
+
+	// Hash password
+	if err := user.HashPassword(user.Password); err != nil {
+		return err
+	}
+
+	// Create user
+	if err := a.userRepo.Create(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
 }

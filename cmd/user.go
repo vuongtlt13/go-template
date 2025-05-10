@@ -1,0 +1,55 @@
+package cmd
+
+import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+	"yourapp/internal/server"
+
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+
+	"yourapp/pkg/logger"
+)
+
+var UserCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Start the user HTTP server",
+	Long:  `Start the user HTTP server that provides user authentication and management APIs.`,
+	Run:   runUserServer,
+}
+
+func runUserServer(cmd *cobra.Command, args []string) {
+	// Initialize log
+	log := logger.GetLogger()
+
+	sv := server.NewUserServer()
+
+	// Start server
+	go func() {
+		err := sv.Start()
+		if err != nil {
+			log.Fatal("Failed to start user server", zap.Error(err))
+		}
+	}()
+
+	// Wait for the interrupt signal to gracefully shut down the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	log.Info("Shutting down user server...")
+
+	// Create a deadline to wait for
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Graceful shutdown
+	if err := sv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown", zap.Error(err))
+	}
+
+	log.Info("User server exiting")
+}

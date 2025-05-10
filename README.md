@@ -1,232 +1,188 @@
 # Go Web Application Template
-# Project Structure
 
-This project follows a domain-driven design approach with the following structure:
-This is a template for a Go web application with user authentication, email verification, and other common features. Built with Fiber, GORM, and other modern Go libraries.
+A modern Go web application template that provides a solid foundation for building scalable web applications with gRPC/Connect.
 
 ## Features
 
-- User registration and authentication with JWT
-- Email verification with background processing
-- Role-based access control (user/admin roles)
-- Automatic cleanup of unverified users after 7 days
-- PostgreSQL database with GORM ORM
-- Background task processing with Asynq
-- Scheduled tasks with Cron
-- Structured logging with Zap
-- Clean architecture with dependency injection
-- Connect-based API with Protocol Buffers
+- **Core Functionality**
+  - JWT-based authentication and authorization
+  - User management system
+  - Role-based access control
+  - Admin dashboard capabilities
 
-## Tech Stack
+- **API Architecture**
+  - Connect gRPC for high-performance RPC
+  - Protocol Buffers for API definitions
+  - Strongly typed API contracts
+  - Code generation from proto files
 
-- **Fiber**: Fast and minimalist web framework
-- **GORM**: Feature-rich ORM for PostgreSQL
-- **JWT**: Authentication using golang-jwt/jwt
-- **Viper**: Configuration management
-- **Asynq**: Background task processing with Redis
-- **Cron**: Scheduled task execution
-- **Zap**: Structured logging
-- **Connect**: gRPC and REST API generation
-- **go-playground/validator**: Input validation
-- **Cobra**: Command-line interface
+- **Domain-Driven Design**
+  - Clean architecture
+  - Separation of concerns
+  - Domain models with business logic
+  - Repository pattern for data access
+
+- **Database**
+  - PostgreSQL with GORM
+  - Migrations for schema management
+  - Soft deletes
+  - Optimized queries with preloading
+
+- **Security**
+  - JWT token-based authentication
+  - Password hashing with bcrypt
+  - CORS configuration
+  - Rate limiting
+  - Helmet security headers
 
 ## Prerequisites
 
-- Go 1.23 or later
-- PostgreSQL
-- Redis (for background tasks)
+- Go 1.21 or higher
+- PostgreSQL 12 or higher
+- Protocol Buffers compiler (protoc)
+- Make (for running build commands)
+- Docker and Docker Compose
 
 ## Project Structure
 
 ```
 .
-├── api/
-│   └── proto/           # Protocol Buffer definitions
-├── cmd/
-│   └── main.go         # Application entry point
-├── config/
-│   └── config.yaml     # Configuration file
-├── internal/
-│   ├── auth/           # Authentication package
-│   ├── background/      # Background tasks
-│   ├── delivery/       # HTTP handlers
-│   ├── models/         # Database models
-│   ├── repository/     # Data access layer
-│   └── service/        # Business logic
-└── pkg/
-    ├── config/         # Configuration package
-    └── logger/         # Logging package
-```
-
-## Configuration
-
-Copy `config/config.yaml.example` to `config/config.yaml` and configure:
-
-```yaml
-server:
-  port: 8080
-
-db:
-  host: "localhost"
-  port: 5432
-  user: "postgres"
-  password: "password"
-  dbname: "app"
-  sslmode: "disable"
-
-jwt:
-  secret: "your-secret-key"
-  expire_period: "24h"
-
-email:
-  host: "smtp.gmail.com"
-  port: 587
-  username: "your-email@gmail.com"
-  password: "your-app-password"
-  from: "no-reply@yourdomain.com"
-
-redis:
-  host: "localhost"
-  port: 6379
-  password: ""
-  db: 0
-
-cleanup:
-  unverified_user_period: "168h"  # 7 days
+├── cmd/                    # Command-line applications
+│   ├── admin.go           # Admin server command
+│   └── user.go            # User server command
+├── internal/              # Private application code
+│   ├── domain/           # Business logic and domain models
+│   │   ├── handler/      # API handlers
+│   │   ├── repository/   # Data access layer
+│   │   └── service/      # Business logic layer
+│   └── server/           # Server implementations
+├── pkg/                   # Public libraries
+│   ├── config/           # Configuration management
+│   ├── database/         # Database connection
+│   └── logger/           # Logging utilities
+├── proto/                # Protocol Buffer definitions
+├── migrations/           # Database migrations
+└── Makefile             # Build and development commands
 ```
 
 ## Getting Started
 
-### 1. Start Infrastructure with Docker Compose
-
-Start PostgreSQL and Redis using Docker Compose (recommended for local development):
-
-```bash
-docker-compose up -d
-```
-
-This will start PostgreSQL on port 5432 and Redis on port 6379 with the correct credentials for your config.
-
-### 2. Clone the repository:
-```bash
-git clone https://github.com/vuongtlt13/template.git
-cd template
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd your-project
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
-   # Initialize Go modules if not already done
-   go mod init yourapp
-   
-   # Install required packages
-   go get -u github.com/spf13/cobra
-   go get -u github.com/gofiber/fiber/v2
-   go get -u go.uber.org/zap
-   go get -u gorm.io/gorm
-   go get -u gorm.io/driver/postgres
-   go get -u github.com/hibiken/asynq
-   go get -u github.com/robfig/cron/v3
+   go mod download
    ```
 
-3. Set up the database:
-   ```bash
-   createdb app
+3. **Set up environment variables**
+   Create a `.env` file in the project root:
+   ```env
+   # App Configuration
+   APP_MODE=development
+   SQL_DEBUG=true
+   CORS=*
+
+   # Server Configuration
+   SERVER_USER_PORT=8080
+   SERVER_ADMIN_PORT=8081
+
+   # Database Configuration
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   DB_NAME=postgres
+
+   # JWT Configuration
+   JWT_SECRET=your-secret-key
+   JWT_EXPIRE_PERIOD=24h
    ```
 
-4. Start Redis:
+4. **Start infrastructure**
    ```bash
-   redis-server.go
+   make start-infra
+   ```
+
+5. **Run database migrations**
+   ```bash
+   make migrate-up
+   ```
+
+6. **Generate Protocol Buffer code**
+   ```bash
+   make gen-proto
    ```
 
 ## Running the Application
 
-The application has two main components that need to be run:
-
-### 1. HTTP Server
-
-Start the HTTP server to handle API requests:
-
+### Admin Server
 ```bash
-go run main.go server.go
+go run main.go admin
 ```
 
-The server will start on `http://localhost:8080` by default.
-
-### 2. Background Job Worker
-
-Start the background job worker to process tasks like cleaning up unverified users:
-
+### User Server
 ```bash
-go run main.go job
+go run main.go user
 ```
 
-### Additional Commands
+## Development
 
-View available commands:
+### Available Make Commands
+
+- `make build` - Build the application
+- `make run` - Run the application
+- `make test` - Run tests
+- `make clean` - Clean build files
+- `make gen-proto` - Generate Protocol Buffer code
+- `make migrate-up` - Run database migrations up
+- `make migrate-down` - Run database migrations down
+- `make start-infra` - Start infrastructure services
+- `make stop-infra` - Stop infrastructure services
+
+### Protocol Buffer Generation
+
+The template uses Protocol Buffers for API definitions. To regenerate the code after modifying proto files:
+
 ```bash
-go run main.go --help
+make gen-proto
 ```
 
-Use a custom config file:
+### Database Migrations
+
+Create new migration files in `migrations/` directory:
 ```bash
-go run main.go --config path/to/config.yaml server.go
+# Apply migrations
+make migrate-up
+
+# Rollback migrations
+make migrate-down
 ```
 
-## API Endpoints
+## Customization
 
-### Public Endpoints
+To customize this template for your project:
 
-- `POST /api/v1/auth/login`: User login
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
+1. Define your domain models in `internal/domain/model`
+2. Create your service interfaces in `internal/domain/service`
+3. Implement your repositories in `internal/domain/repository`
+4. Add your API definitions in `proto` directory
+5. Update the database schema in `migrations`
 
-- `POST /api/v1/auth/register`: User registration
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123",
-    "full_name": "John Doe"
-  }
-  ```
+## Environment Variables
 
-- `POST /api/v1/auth/verify`: Email verification
-  ```json
-  {
-    "token": "verification-token"
-  }
-  ```
-
-### Protected Endpoints
-
-Require `Authorization: Bearer <token>` header
-
-- `GET /api/v1/users`: List users (admin only)
-- `GET /api/v1/users/:id`: Get user details
-- `PUT /api/v1/users/:id`: Update user
-  ```json
-  {
-    "full_name": "Updated Name",
-    "role": "admin"  # admin only
-  }
-  ```
-- `DELETE /api/v1/users/:id`: Delete user (admin only)
-
-## Background Tasks
-
-- Email verification: Sends verification emails asynchronously
-- User cleanup: Removes unverified users after 7 days
+The template uses environment variables for configuration. All required variables are listed in the `.env` file template above. The application will automatically load the `.env` file if it exists.
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 

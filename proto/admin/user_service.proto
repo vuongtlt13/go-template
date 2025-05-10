@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package yourapp.admin;
+
+import "google/api/annotations.proto";
+import "envoyproxy/validate/validate.proto";
+
+option go_package = "yourapp/pb/admin;admin";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post: "/admin/users"
+      body: "*"
+    };
+  }
+
+  rpc GetUser(GetUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      get: "/admin/users/{id}"
+    };
+  }
+
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/admin/users/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete: "/admin/users/{id}"
+    };
+  }
+
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/admin/users"
+    };
+  }
+}
+
+message User {
+  uint64 id = 1;
+  string email = 2 [(validate.rules).string.email = true];
+  string first_name = 3 [(validate.rules).string.min_len = 1];
+  string last_name = 4 [(validate.rules).string.min_len = 1];
+  bool is_active = 5;
+}
+
+message CreateUserRequest {
+  string email = 1 [(validate.rules).string.email = true];
+  string password = 2 [(validate.rules).string.min_len = 8];
+  string first_name = 3 [(validate.rules).string.min_len = 1];
+  string last_name = 4 [(validate.rules).string.min_len = 1];
+}
+
+message GetUserRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message UpdateUserRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  string email = 2 [(validate.rules).string.email = true];
+  string first_name = 3 [(validate.rules).string.min_len = 1];
+  string last_name = 4 [(validate.rules).string.min_len = 1];
+  bool is_active = 5;
+}
+
+message DeleteUserRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+}
+
+message ListUsersRequest {
+  uint32 page = 1 [(validate.rules).uint32.gt = 0];
+  uint32 page_size = 2 [(validate.rules).uint32.gt = 0];
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  uint32 total = 2;
+}
+
+message UserResponse {
+  User user = 1;
+} 
