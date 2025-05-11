@@ -4,14 +4,13 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"time"
 	"yourapp/internal/domain/service"
 
 	"github.com/robfig/cron/v3"
 )
 
 // ScheduleCleanup schedules the user cleanup task
-func ScheduleCleanup(service service.RoleService) *cron.Cron {
+func ScheduleCleanup(userService service.UserService) *cron.Cron {
 	c := cron.New()
 
 	// Run every day at midnight
@@ -24,7 +23,7 @@ func ScheduleCleanup(service service.RoleService) *cron.Cron {
 		}
 
 		ctx := context.Background()
-		service.CleanupUnverifiedUsers(ctx, days)
+		userService.CleanupUnverifiedUsers(ctx, days)
 	})
 
 	if err != nil {
@@ -34,23 +33,4 @@ func ScheduleCleanup(service service.RoleService) *cron.Cron {
 
 	c.Start()
 	return c
-}
-
-// CleanupUnverifiedUsers implementation in ServiceImpl
-func (s *service.ServiceImpl) CleanupUnverifiedUsers(ctx context.Context, olderThanDays int) error {
-	cutoffTime := time.Now().AddDate(0, 0, -olderThanDays)
-
-	// Find users to be deleted for logging purposes
-	users, err := s.repo.FindUnverifiedUsersCreatedBefore(ctx, cutoffTime)
-	if err != nil {
-		return err
-	}
-
-	// Log users to be deleted
-	for _, user := range users {
-		// Log user details
-	}
-
-	// Delete the users
-	return s.repo.DeleteUnverifiedUsers(ctx, olderThanDays)
 }

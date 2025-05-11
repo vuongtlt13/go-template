@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"yourapp/internal/domain/model"
 	"yourapp/pkg/database"
 
@@ -15,6 +16,7 @@ type UserRepository interface {
 	Update(ctx context.Context, user *model.User) error
 	Delete(ctx context.Context, id uint) error
 	List(ctx context.Context) ([]*model.User, error)
+	DeleteUnverifiedUsersCreatedBefore(ctx context.Context, cutoffTime time.Time) error
 }
 
 type userRepository struct {
@@ -78,4 +80,11 @@ func (r *userRepository) List(ctx context.Context) ([]*model.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// DeleteUnverifiedUsersCreatedBefore deletes unverified users created before the cutoff time
+func (r *userRepository) DeleteUnverifiedUsersCreatedBefore(ctx context.Context, cutoffTime time.Time) error {
+	return r.db.WithContext(ctx).
+		Where("is_verified = ? AND created_at < ?", false, cutoffTime).
+		Delete(&model.User{}).Error
 }

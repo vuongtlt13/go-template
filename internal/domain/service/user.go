@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
 	"yourapp/pkg/database"
@@ -17,6 +18,7 @@ type UserService interface {
 	UpdateUser(ctx context.Context, user *model.User) error
 	DeleteUser(ctx context.Context, id uint) error
 	ListUsers(ctx context.Context) ([]*model.User, error)
+	CleanupUnverifiedUsers(ctx context.Context, olderThanDays int) error
 }
 
 // userServiceImpl implements UserService
@@ -68,4 +70,10 @@ func (s *userServiceImpl) DeleteUser(ctx context.Context, id uint) error {
 // ListUsers lists all users
 func (s *userServiceImpl) ListUsers(ctx context.Context) ([]*model.User, error) {
 	return s.userRepo.List(ctx)
+}
+
+// CleanupUnverifiedUsers deletes unverified users older than the specified number of days
+func (s *userServiceImpl) CleanupUnverifiedUsers(ctx context.Context, olderThanDays int) error {
+	cutoffTime := time.Now().AddDate(0, 0, -olderThanDays)
+	return s.userRepo.DeleteUnverifiedUsersCreatedBefore(ctx, cutoffTime)
 }
