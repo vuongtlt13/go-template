@@ -14,8 +14,8 @@ import (
 func TestPermissionService_CreatePermission(t *testing.T) {
 	// Setup
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewPermissionService().(*permissionServiceImpl)
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewPermissionServiceWithMocks(mockDB, mockPermRepo)
 
 	tests := []struct {
 		name        string
@@ -27,8 +27,10 @@ func TestPermissionService_CreatePermission(t *testing.T) {
 		{
 			name: "successful creation",
 			permission: &model.Permission{
-				Name: "Create User",
-				Code: "CREATE_USER",
+				Name:    "Create User",
+				Code:    "CREATE_USER",
+				Service: "user",
+				Method:  "create",
 			},
 			mock: func() {
 				mockPermRepo.On("FindByServiceAndMethod", mock.Anything, "user", "create", mock.Anything).
@@ -41,8 +43,10 @@ func TestPermissionService_CreatePermission(t *testing.T) {
 		{
 			name: "duplicate code",
 			permission: &model.Permission{
-				Name: "Create User",
-				Code: "CREATE_USER",
+				Name:    "Create User",
+				Code:    "CREATE_USER",
+				Service: "user",
+				Method:  "create",
 			},
 			mock: func() {
 				mockPermRepo.On("FindByServiceAndMethod", mock.Anything, "user", "create", mock.Anything).
@@ -55,6 +59,7 @@ func TestPermissionService_CreatePermission(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.CreatePermission(context.Background(), tt.permission)
 			if tt.wantErr {
@@ -70,8 +75,8 @@ func TestPermissionService_CreatePermission(t *testing.T) {
 func TestPermissionService_GetPermissionByID(t *testing.T) {
 	// Setup
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewPermissionService().(*permissionServiceImpl)
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewPermissionServiceWithMocks(mockDB, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -122,8 +127,8 @@ func TestPermissionService_GetPermissionByID(t *testing.T) {
 func TestPermissionService_UpdatePermission(t *testing.T) {
 	// Setup
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewPermissionService().(*permissionServiceImpl)
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewPermissionServiceWithMocks(mockDB, mockPermRepo)
 
 	tests := []struct {
 		name       string
@@ -177,8 +182,8 @@ func TestPermissionService_UpdatePermission(t *testing.T) {
 func TestPermissionService_DeletePermission(t *testing.T) {
 	// Setup
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewPermissionService().(*permissionServiceImpl)
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewPermissionServiceWithMocks(mockDB, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -224,8 +229,8 @@ func TestPermissionService_DeletePermission(t *testing.T) {
 func TestPermissionService_ListPermissions(t *testing.T) {
 	// Setup
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewPermissionService().(*permissionServiceImpl)
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewPermissionServiceWithMocks(mockDB, mockPermRepo)
 
 	tests := []struct {
 		name      string
@@ -274,6 +279,7 @@ func TestPermissionService_ListPermissions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			permissions, total, err := service.ListPermissions(context.Background(), tt.page, tt.pageSize)
 			if tt.wantErr {
@@ -283,10 +289,12 @@ func TestPermissionService_ListPermissions(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantTotal, total)
 				assert.Equal(t, len(tt.want), len(permissions))
-				for i, perm := range permissions {
-					assert.Equal(t, tt.want[i].ID, perm.ID)
-					assert.Equal(t, tt.want[i].Name, perm.Name)
-					assert.Equal(t, tt.want[i].Code, perm.Code)
+				if len(tt.want) > 0 {
+					for i, perm := range permissions {
+						assert.Equal(t, tt.want[i].ID, perm.ID)
+						assert.Equal(t, tt.want[i].Name, perm.Name)
+						assert.Equal(t, tt.want[i].Code, perm.Code)
+					}
 				}
 			}
 		})

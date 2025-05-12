@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
+	"errors"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
 	"yourapp/pkg/auth"
-	"yourapp/pkg/database"
 
 	"gorm.io/gorm"
+)
+
+var (
+	ErrUserInactive = errors.New("user is inactive")
+	ErrUserExists   = errors.New("user already exists")
 )
 
 type Credential struct {
@@ -25,23 +30,16 @@ type AuthService interface {
 type authService struct {
 	db         *gorm.DB
 	userRepo   repository.UserRepository
-	jwtManager *auth.JWTManager
+	jwtManager auth.JWTManagerInterface
 }
 
-var (
-	authServiceInstance *authService
-)
-
-// NewAuthService creates a new auth service using singleton instances
-func NewAuthService() AuthService {
-	if authServiceInstance == nil {
-		authServiceInstance = &authService{
-			db:         database.GetDatabase(),
-			userRepo:   repository.NewUserRepository(),
-			jwtManager: auth.GetJWTManager(),
-		}
+// NewAuthService creates a new auth service with the given dependencies
+func NewAuthService(db *gorm.DB, userRepo repository.UserRepository, jwtManager auth.JWTManagerInterface) AuthService {
+	return &authService{
+		db:         db,
+		userRepo:   userRepo,
+		jwtManager: jwtManager,
 	}
-	return authServiceInstance
 }
 
 func (a *authService) Login(ctx context.Context, cred Credential) (string, error) {
@@ -51,7 +49,7 @@ func (a *authService) Login(ctx context.Context, cred Credential) (string, error
 	}
 
 	if !user.IsActive {
-		return "", err
+		return "", ErrUserInactive
 	}
 
 	// Verify password
@@ -69,6 +67,15 @@ func (a *authService) Login(ctx context.Context, cred Credential) (string, error
 }
 
 func (a *authService) Register(ctx context.Context, cred Credential) error {
+	// Check if user already exists
+	existingUser, err := a.userRepo.GetByEmail(ctx, cred.Email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if existingUser != nil {
+		return ErrUserExists
+	}
+
 	// Create user
 	user := &model.User{
 		Email:    cred.Email,

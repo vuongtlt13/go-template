@@ -15,9 +15,8 @@ func TestRoleService_CreateRole(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name        string
@@ -57,6 +56,8 @@ func TestRoleService_CreateRole(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.CreateRole(context.Background(), tt.role)
 			if tt.wantErr {
@@ -73,9 +74,8 @@ func TestRoleService_GetRoleByID(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -108,6 +108,8 @@ func TestRoleService_GetRoleByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			role, err := service.GetRoleByID(context.Background(), tt.id)
 			if tt.wantErr {
@@ -127,9 +129,8 @@ func TestRoleService_UpdateRole(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -169,6 +170,8 @@ func TestRoleService_UpdateRole(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.UpdateRole(context.Background(), tt.role)
 			if tt.wantErr {
@@ -184,9 +187,8 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -218,6 +220,8 @@ func TestRoleService_DeleteRole(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.DeleteRole(context.Background(), tt.id)
 			if tt.wantErr {
@@ -233,9 +237,8 @@ func TestRoleService_ListRoles(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name      string
@@ -284,6 +287,8 @@ func TestRoleService_ListRoles(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			roles, total, err := service.ListRoles(context.Background(), tt.page, tt.pageSize)
 			if tt.wantErr {
@@ -307,9 +312,8 @@ func TestRoleService_AssignPermissions(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name          string
@@ -363,6 +367,8 @@ func TestRoleService_AssignPermissions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.AssignPermissions(context.Background(), tt.roleID, tt.permissionIDs)
 			if tt.wantErr {
@@ -379,9 +385,8 @@ func TestRoleService_GetRolePermissions(t *testing.T) {
 	// Setup
 	mockRoleRepo := new(MockRoleRepository)
 	mockPermRepo := new(MockPermissionRepository)
-	service := NewRoleService().(*roleServiceImpl)
-	service.roleRepo = mockRoleRepo
-	service.permissionRepo = mockPermRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewRoleService(mockDB, mockRoleRepo, mockPermRepo)
 
 	tests := []struct {
 		name    string
@@ -422,6 +427,8 @@ func TestRoleService_GetRolePermissions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockRoleRepo.ExpectedCalls = nil // reset mock
+			mockPermRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			permissions, err := service.GetRolePermissions(context.Background(), tt.roleID)
 			if tt.wantErr {

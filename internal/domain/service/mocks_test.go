@@ -5,6 +5,7 @@ import (
 	"time"
 	coreRepo "yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
+	"yourapp/pkg/auth"
 
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
@@ -54,6 +55,32 @@ func (m *MockUserRepository) List(ctx context.Context) ([]*model.User, error) {
 func (m *MockUserRepository) DeleteUnverifiedUsersCreatedBefore(ctx context.Context, cutoffTime time.Time) error {
 	args := m.Called(ctx, cutoffTime)
 	return args.Error(0)
+}
+
+// MockJWTManager is a mock implementation of auth.JWTManagerInterface
+type MockJWTManager struct {
+	mock.Mock
+}
+
+// GenerateToken mocks the GenerateToken method
+func (m *MockJWTManager) GenerateToken(userID uint64) (string, error) {
+	args := m.Called(userID)
+	return args.String(0), args.Error(1)
+}
+
+// VerifyToken mocks the VerifyToken method
+func (m *MockJWTManager) VerifyToken(tokenStr string) (uint64, error) {
+	args := m.Called(tokenStr)
+	return args.Get(0).(uint64), args.Error(1)
+}
+
+// ValidateToken mocks the ValidateToken method
+func (m *MockJWTManager) ValidateToken(tokenStr string) (*auth.Claims, error) {
+	args := m.Called(tokenStr)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*auth.Claims), args.Error(1)
 }
 
 // MockRoleRepository is a mock implementation of RoleRepository

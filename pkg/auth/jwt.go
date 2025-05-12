@@ -10,6 +10,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// JWTManagerInterface defines the interface for JWT operations
+type JWTManagerInterface interface {
+	GenerateToken(userID uint64) (string, error)
+	VerifyToken(tokenStr string) (uint64, error)
+	ValidateToken(tokenStr string) (*Claims, error)
+}
+
 type JWTManager struct {
 	config *config.JWTConfig
 }

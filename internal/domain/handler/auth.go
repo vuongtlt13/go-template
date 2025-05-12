@@ -2,8 +2,11 @@ package handler
 
 import (
 	"context"
+	"yourapp/internal/domain/repository"
 	"yourapp/internal/domain/service"
 	"yourapp/pb/auth"
+	authpkg "yourapp/pkg/auth"
+	"yourapp/pkg/database"
 
 	"connectrpc.com/connect"
 )
@@ -15,7 +18,11 @@ type AuthHandler struct {
 // NewAuthHandler creates a new auth handler using singleton instances
 func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{
-		authService: service.NewAuthService(),
+		authService: service.NewAuthService(
+			database.GetDatabase(),
+			repository.NewUserRepository(),
+			authpkg.GetJWTManager(),
+		),
 	}
 }
 

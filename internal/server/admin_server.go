@@ -74,8 +74,8 @@ func NewAdminServer() *AdminServer {
 func (s *AdminServer) Start() error {
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler()
-	userHandler := adminhandler.NewUserHandler()
-	roleHandler := adminhandler.NewRoleHandler()
+	userHandler := adminhandler.NewUserHandler(s.db)
+	roleHandler := adminhandler.NewRoleHandler(s.db)
 	permissionHandler := adminhandler.NewPermissionHandler()
 
 	// Create Connect service handlers

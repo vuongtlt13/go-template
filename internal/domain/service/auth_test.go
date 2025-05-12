@@ -15,22 +15,25 @@ import (
 func TestAuthService_Login(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewAuthService().(*authService)
-	service.userRepo = mockUserRepo
+	mockJWTManager := new(MockJWTManager)
+	service := NewAuthService(nil, mockUserRepo, mockJWTManager)
 
 	// Create a test user with hashed password
 	testUser := &model.User{
 		ID:       1,
 		Email:    "test@example.com",
-		Password: "hashed_password",
+		Password: "testpassword",
 		IsActive: true,
+	}
+	if err := testUser.HashPassword(testUser.Password); err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
 		name    string
 		cred    Credential
 		mock    func()
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "successful login",
@@ -41,8 +44,10 @@ func TestAuthService_Login(t *testing.T) {
 			mock: func() {
 				mockUserRepo.On("GetByEmail", mock.Anything, "test@example.com").
 					Return(testUser, nil)
+				mockJWTManager.On("GenerateToken", uint64(1)).
+					Return("test-token", nil)
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "user not found",
@@ -54,7 +59,7 @@ func TestAuthService_Login(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "nonexistent@example.com").
 					Return(nil, gorm.ErrRecordNotFound)
 			},
-			wantErr: true,
+			wantErr: gorm.ErrRecordNotFound,
 		},
 		{
 			name: "invalid password",
@@ -66,7 +71,7 @@ func TestAuthService_Login(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "test@example.com").
 					Return(testUser, nil)
 			},
-			wantErr: true,
+			wantErr: errors.New("crypto/bcrypt: hashedPassword is not the hash of the given password"),
 		},
 		{
 			name: "inactive user",
@@ -81,7 +86,7 @@ func TestAuthService_Login(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "inactive@example.com").
 					Return(&inactiveUser, nil)
 			},
-			wantErr: true,
+			wantErr: ErrUserInactive,
 		},
 		{
 			name: "repository error on GetByEmail",
@@ -93,7 +98,7 @@ func TestAuthService_Login(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "error@example.com").
 					Return(nil, errors.New("db error"))
 			},
-			wantErr: true,
+			wantErr: errors.New("db error"),
 		},
 	}
 
@@ -101,8 +106,9 @@ func TestAuthService_Login(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock()
 			token, err := service.Login(context.Background(), tt.cred)
-			if tt.wantErr {
+			if tt.wantErr != nil {
 				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr, err)
 				assert.Empty(t, token)
 			} else {
 				assert.NoError(t, err)
@@ -115,14 +121,14 @@ func TestAuthService_Login(t *testing.T) {
 func TestAuthService_Register(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewAuthService().(*authService)
-	service.userRepo = mockUserRepo
+	mockJWTManager := new(MockJWTManager)
+	service := NewAuthService(nil, mockUserRepo, mockJWTManager)
 
 	tests := []struct {
 		name    string
 		cred    Credential
 		mock    func()
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "successful registration",
@@ -136,7 +142,7 @@ func TestAuthService_Register(t *testing.T) {
 				mockUserRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.User")).
 					Return(nil)
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "email already exists",
@@ -148,7 +154,7 @@ func TestAuthService_Register(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "existing@example.com").
 					Return(&model.User{Email: "existing@example.com"}, nil)
 			},
-			wantErr: true,
+			wantErr: errors.New("user already exists"),
 		},
 		{
 			name: "repository error on GetByEmail",
@@ -160,7 +166,7 @@ func TestAuthService_Register(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "error@example.com").
 					Return(nil, errors.New("db error"))
 			},
-			wantErr: true,
+			wantErr: errors.New("db error"),
 		},
 		{
 			name: "repository error on Create",
@@ -172,18 +178,21 @@ func TestAuthService_Register(t *testing.T) {
 				mockUserRepo.On("GetByEmail", mock.Anything, "newuser2@example.com").
 					Return(nil, gorm.ErrRecordNotFound)
 				mockUserRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.User")).
-					Return(errors.New("db error"))
+					Return(errors.New("db error")).Once()
 			},
-			wantErr: true,
+			wantErr: errors.New("db error"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockUserRepo.ExpectedCalls = nil   // reset mock
+			mockJWTManager.ExpectedCalls = nil // reset mock
 			tt.mock()
 			err := service.Register(context.Background(), tt.cred)
-			if tt.wantErr {
+			if tt.wantErr != nil {
 				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr, err)
 			} else {
 				assert.NoError(t, err)
 			}

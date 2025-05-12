@@ -14,8 +14,8 @@ import (
 func TestUserService_CreateUser(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string
@@ -67,8 +67,8 @@ func TestUserService_CreateUser(t *testing.T) {
 func TestUserService_GetUserByID(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string
@@ -118,8 +118,8 @@ func TestUserService_GetUserByID(t *testing.T) {
 func TestUserService_GetUserByEmail(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string
@@ -169,8 +169,8 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 func TestUserService_UpdateUser(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string
@@ -222,8 +222,8 @@ func TestUserService_UpdateUser(t *testing.T) {
 func TestUserService_DeleteUser(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string
@@ -269,8 +269,8 @@ func TestUserService_DeleteUser(t *testing.T) {
 func TestUserService_ListUsers(t *testing.T) {
 	// Setup
 	mockUserRepo := new(MockUserRepository)
-	service := NewUserService().(*userServiceImpl)
-	service.userRepo = mockUserRepo
+	var mockDB *gorm.DB // nil is fine for tests since we mock all repo methods
+	service := NewUserService(mockDB, mockUserRepo)
 
 	tests := []struct {
 		name    string

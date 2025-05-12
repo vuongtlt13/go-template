@@ -5,7 +5,6 @@ import (
 	"time"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
-	"yourapp/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -27,19 +26,12 @@ type userServiceImpl struct {
 	userRepo repository.UserRepository
 }
 
-var (
-	userServiceInstance *userServiceImpl
-)
-
-// NewUserService creates a new user service
-func NewUserService() UserService {
-	if userServiceInstance == nil {
-		userServiceInstance = &userServiceImpl{
-			db:       database.GetDatabase(),
-			userRepo: repository.NewUserRepository(),
-		}
+// NewUserService creates a new user service with the given dependencies
+func NewUserService(db *gorm.DB, userRepo repository.UserRepository) UserService {
+	return &userServiceImpl{
+		db:       db,
+		userRepo: userRepo,
 	}
-	return userServiceInstance
 }
 
 // CreateUser creates a new user

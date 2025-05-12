@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	coreRepo "yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
-	"yourapp/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -29,24 +29,24 @@ type roleServiceImpl struct {
 	permissionRepo repository.PermissionRepository
 }
 
-var (
-	roleServiceInstance *roleServiceImpl
-)
-
-// NewRoleService creates a new role service
-func NewRoleService() RoleService {
-	if roleServiceInstance == nil {
-		roleServiceInstance = &roleServiceImpl{
-			db:             database.GetDatabase(),
-			roleRepo:       repository.NewRoleRepository(),
-			permissionRepo: repository.NewPermissionRepository(),
-		}
+// NewRoleService creates a new role service with the given dependencies
+func NewRoleService(db *gorm.DB, roleRepo repository.RoleRepository, permRepo repository.PermissionRepository) RoleService {
+	return &roleServiceImpl{
+		db:             db,
+		roleRepo:       roleRepo,
+		permissionRepo: permRepo,
 	}
-	return roleServiceInstance
 }
 
 // CreateRole creates a new role
 func (s *roleServiceImpl) CreateRole(ctx context.Context, role *model.Role) error {
+	existing, err := s.roleRepo.FindByCode(ctx, role.Code, s.db)
+	if err == nil && existing != nil {
+		return ErrDuplicateRoleCode
+	}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
 	return s.roleRepo.Create(ctx, role, s.db)
 }
 
@@ -57,17 +57,50 @@ func (s *roleServiceImpl) GetRoleByID(ctx context.Context, id uint64) (*model.Ro
 
 // UpdateRole updates a role
 func (s *roleServiceImpl) UpdateRole(ctx context.Context, role *model.Role) error {
+	existing, err := s.roleRepo.FindByID(ctx, role.ID, nil, s.db)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return gorm.ErrRecordNotFound
+	}
 	return s.roleRepo.Update(ctx, role, s.db)
 }
 
 // DeleteRole deletes a role
 func (s *roleServiceImpl) DeleteRole(ctx context.Context, id uint64) error {
-	role := &model.Role{ID: id}
-	return s.roleRepo.Delete(ctx, role, s.db)
+	existing, err := s.roleRepo.FindByID(ctx, id, nil, s.db)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return gorm.ErrRecordNotFound
+	}
+	return s.roleRepo.Delete(ctx, existing, s.db)
 }
 
 // AssignPermissions assigns permissions to a role
 func (s *roleServiceImpl) AssignPermissions(ctx context.Context, roleID uint64, permissionIDs []uint64) error {
+	// Check if role exists
+	role, err := s.roleRepo.FindByID(ctx, roleID, nil, s.db)
+	if err != nil {
+		return fmt.Errorf("error finding role: %w", err)
+	}
+	if role == nil {
+		return ErrRoleNotFound
+	}
+
+	// Check if all permissions exist
+	for _, permID := range permissionIDs {
+		perm, err := s.permissionRepo.FindByID(ctx, permID, nil, s.db)
+		if err != nil {
+			return fmt.Errorf("error finding permission: %w", err)
+		}
+		if perm == nil {
+			return ErrPermissionNotFound
+		}
+	}
+
 	return s.roleRepo.AssignPermissions(ctx, roleID, permissionIDs, s.db)
 }
 
@@ -105,9 +138,9 @@ func (s *roleServiceImpl) ListRoles(ctx context.Context, page, pageSize int) ([]
 		result[i] = *role
 	}
 
-	// Get total count
-	var total int64
-	if err := s.db.WithContext(ctx).Model(&model.Role{}).Count(&total).Error; err != nil {
+	// Get total count using repository
+	total, err := s.roleRepo.Count(ctx, nil, s.db)
+	if err != nil {
 		return nil, 0, err
 	}
 

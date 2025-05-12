@@ -14,6 +14,7 @@ type RoleRepository interface {
 	FindByCode(ctx context.Context, code string, db *gorm.DB) (*model.Role, error)
 	AssignPermissions(ctx context.Context, roleID uint64, permissionIDs []uint64, db *gorm.DB) error
 	GetRolePermissions(ctx context.Context, roleID uint64, db *gorm.DB) ([]model.Permission, error)
+	Count(ctx context.Context, conditions map[string]interface{}, db *gorm.DB) (int64, error)
 }
 
 // roleRepository implements RoleRepository
@@ -58,6 +59,19 @@ func (r *roleRepository) GetRolePermissions(ctx context.Context, roleID uint64, 
 	}
 
 	return permissions, nil
+}
+
+// Count counts the number of roles matching the given conditions
+func (r *roleRepository) Count(ctx context.Context, conditions map[string]interface{}, db *gorm.DB) (int64, error) {
+	var count int64
+	query := db.WithContext(ctx).Model(&model.Role{})
+	if conditions != nil {
+		query = query.Where(conditions)
+	}
+	if err := query.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 // NewRoleRepository creates a new role repository

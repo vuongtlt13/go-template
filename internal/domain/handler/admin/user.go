@@ -1,23 +1,26 @@
 package admin
 
 import (
-	"connectrpc.com/connect"
 	"context"
+	"yourapp/internal/domain/repository"
 	"yourapp/internal/domain/service"
 	"yourapp/pb/admin"
+
+	"connectrpc.com/connect"
+	"gorm.io/gorm"
 )
 
 // UserHandler implements the Connect gRPC interface for admin user service
 // It should satisfy adminconnect.UserServiceHandler
 
 type UserHandler struct {
-	svc service.UserService
+	userService service.UserService
 }
 
 // NewUserHandler creates a new user handler using singleton instances
-func NewUserHandler() *UserHandler {
+func NewUserHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{
-		svc: service.NewUserService(),
+		userService: service.NewUserService(db, repository.NewUserRepository()),
 	}
 }
 
