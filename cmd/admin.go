@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 	"yourapp/internal/server"
+	"yourapp/pkg/config"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -25,7 +26,11 @@ func runAdminServer(cmd *cobra.Command, args []string) {
 	// Initialize log
 	log := logger.GetLogger()
 
-	sv := server.NewAdminServer()
+	// Get config
+	cfg := config.GetConfig()
+
+	// Create and start server
+	sv := server.NewAdminServer(cfg)
 
 	// Start server
 	go func() {

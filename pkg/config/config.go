@@ -6,6 +6,7 @@ import (
 	"yourapp/pkg/logger"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -25,8 +26,23 @@ func (c *Config) IsProduction() bool {
 }
 
 type ServerConfig struct {
-	UserPort  int `env:"USER_PORT" envDefault:"8080"`
-	AdminPort int `env:"ADMIN_PORT" envDefault:"8081"`
+	AdminPort int    `mapstructure:"admin_port"`
+	UserPort  int    `mapstructure:"user_port"`
+	Cors      string `mapstructure:"cors"`
+	App       AppConfig
+}
+
+type AppConfig struct {
+	Name         string        `mapstructure:"name"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
+	RateLimit    RateLimitConfig
+}
+
+type RateLimitConfig struct {
+	Max        int           `mapstructure:"max"`
+	Expiration time.Duration `mapstructure:"expiration"`
 }
 
 type DBConfig struct {
@@ -86,5 +102,8 @@ func loadConfig() (*Config, error) {
 	if err := env.Parse(cfg); err != nil {
 		logger.GetLogger().Fatal("Failed to parse config: %v", err)
 	}
+
+	viper.Unmarshal(&cfg.Server.App)
+
 	return cfg, nil
 }

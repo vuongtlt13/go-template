@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
+	"yourapp/pkg/core/repository"
 
 	"gorm.io/gorm"
 )

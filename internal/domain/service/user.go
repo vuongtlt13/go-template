@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
@@ -36,6 +37,13 @@ func NewUserService(db *gorm.DB, userRepo repository.UserRepository) UserService
 
 // CreateUser creates a new user
 func (s *userServiceImpl) CreateUser(ctx context.Context, user *model.User) error {
+	existing, err := s.userRepo.GetByEmail(ctx, user.Email)
+	if err == nil && existing != nil {
+		return gorm.ErrDuplicatedKey
+	}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
 	return s.userRepo.Create(ctx, user)
 }
 
@@ -51,11 +59,25 @@ func (s *userServiceImpl) GetUserByEmail(ctx context.Context, email string) (*mo
 
 // UpdateUser updates a user
 func (s *userServiceImpl) UpdateUser(ctx context.Context, user *model.User) error {
+	existing, err := s.userRepo.GetByID(ctx, uint(user.ID))
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return gorm.ErrRecordNotFound
+	}
 	return s.userRepo.Update(ctx, user)
 }
 
 // DeleteUser deletes a user
 func (s *userServiceImpl) DeleteUser(ctx context.Context, id uint) error {
+	existing, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return gorm.ErrRecordNotFound
+	}
 	return s.userRepo.Delete(ctx, id)
 }
 

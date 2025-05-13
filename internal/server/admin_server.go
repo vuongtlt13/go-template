@@ -3,71 +3,30 @@ package server
 import (
 	"context"
 	"fmt"
-	"time"
-	"yourapp/pb/admin/adminconnect"
-	"yourapp/pb/auth/authconnect"
-
 	"yourapp/internal/domain/handler"
 	adminhandler "yourapp/internal/domain/handler/admin"
+	"yourapp/pb/admin/adminconnect"
+	"yourapp/pb/auth/authconnect"
 	"yourapp/pkg/config"
 	"yourapp/pkg/database"
+	"yourapp/pkg/server"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/gorm"
 )
 
 // AdminServer represents the admin HTTP server
 type AdminServer struct {
-	app *fiber.App
-	db  *gorm.DB
+	*server.BaseServer
+	db *gorm.DB
 }
 
 // NewAdminServer creates a new admin server instance
-func NewAdminServer() *AdminServer {
-	s := &AdminServer{
-		db: database.GetDatabase(),
+func NewAdminServer(cfg *config.Config) *AdminServer {
+	return &AdminServer{
+		BaseServer: server.NewBaseServer(cfg, "Admin"),
+		db:         database.GetDatabase(),
 	}
-
-	// Create Fiber app
-	s.app = fiber.New(fiber.Config{
-		AppName:      "YourApp Admin",
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	})
-
-	// Add middleware
-	s.app.Use(recover.New())
-	s.app.Use(logger.New())
-
-	// Configure CORS
-	cfg := config.GetConfig()
-	allowOrigins := "*"
-	if cfg.IsProduction() {
-		allowOrigins = cfg.Cors
-	}
-	s.app.Use(cors.New(cors.Config{
-		AllowOrigins: allowOrigins,
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-	}))
-
-	// Add rate limiting
-	s.app.Use(limiter.New(limiter.Config{
-		Max:        60,
-		Expiration: 1 * time.Minute,
-		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"message": "Too many requests. Please try again later.",
-			})
-		},
-	}))
-
-	return s
 }
 
 // Start starts the server
@@ -85,19 +44,19 @@ func (s *AdminServer) Start() error {
 	permissionPath, permissionConnectHandler := adminconnect.NewPermissionServiceHandler(permissionHandler)
 
 	// Mount Connect services
-	s.app.All(authPath+"*", adaptor.HTTPHandler(authConnectHandler))
-	s.app.All(userPath+"*", adaptor.HTTPHandler(userConnectHandler))
-	s.app.All(rolePath+"*", adaptor.HTTPHandler(roleConnectHandler))
-	s.app.All(permissionPath+"*", adaptor.HTTPHandler(permissionConnectHandler))
+	app := s.GetApp()
+	app.All(authPath+"*", adaptor.HTTPHandler(authConnectHandler))
+	app.All(userPath+"*", adaptor.HTTPHandler(userConnectHandler))
+	app.All(rolePath+"*", adaptor.HTTPHandler(roleConnectHandler))
+	app.All(permissionPath+"*", adaptor.HTTPHandler(permissionConnectHandler))
 
 	// Start server
-	return s.app.Listen(fmt.Sprintf(":%d", config.GetConfig().Server.AdminPort))
+	return app.Listen(fmt.Sprintf(":%d", s.GetConfig().Server.AdminPort))
 }
 
 // Shutdown gracefully shuts down the server
 func (s *AdminServer) Shutdown(ctx context.Context) error {
-	if s.app != nil {
-		return s.app.ShutdownWithContext(ctx)
-	}
-	return nil
+	return s.BaseServer.Shutdown(ctx)
 }
+
+// Additional admin-specific methods

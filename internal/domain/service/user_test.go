@@ -306,6 +306,7 @@ func TestUserService_ListUsers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockUserRepo.ExpectedCalls = nil // reset mock
 			tt.mock()
 			users, err := service.ListUsers(context.Background())
 			if tt.wantErr {
@@ -314,9 +315,11 @@ func TestUserService_ListUsers(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, len(tt.want), len(users))
-				for i, user := range users {
-					assert.Equal(t, tt.want[i].ID, user.ID)
-					assert.Equal(t, tt.want[i].Email, user.Email)
+				if len(tt.want) > 0 {
+					for i, user := range users {
+						assert.Equal(t, tt.want[i].ID, user.ID)
+						assert.Equal(t, tt.want[i].Email, user.Email)
+					}
 				}
 			}
 		})

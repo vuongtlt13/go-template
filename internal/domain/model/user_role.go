@@ -1,7 +1,7 @@
 package model
 
 import (
-	"yourapp/internal/core/model"
+	"yourapp/pkg/core/model"
 )
 
 type UserRole struct {

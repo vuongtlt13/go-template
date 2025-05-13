@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
+	"yourapp/pkg/core/repository"
 )
 
 // UserProfileRepository defines the interface for user profile operations

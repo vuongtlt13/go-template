@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 	"yourapp/internal/server"
+	"yourapp/pkg/config"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -17,7 +18,7 @@ import (
 var UserCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Start the user HTTP server",
-	Long:  `Start the user HTTP server that provides user authentication and management APIs.`,
+	Long:  `Start the user HTTP server that provides user-facing APIs.`,
 	Run:   runUserServer,
 }
 
@@ -25,7 +26,11 @@ func runUserServer(cmd *cobra.Command, args []string) {
 	// Initialize log
 	log := logger.GetLogger()
 
-	sv := server.NewUserServer()
+	// Get config
+	cfg := config.GetConfig()
+
+	// Create and start server
+	sv := server.NewUserServer(cfg)
 
 	// Start server
 	go func() {

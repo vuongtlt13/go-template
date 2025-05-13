@@ -35,35 +35,31 @@ A modern Go web application template that provides a solid foundation for buildi
   - Rate limiting
   - Helmet security headers
 
-## Prerequisites
-
-- Go 1.21 or higher
-- PostgreSQL 12 or higher
-- Protocol Buffers compiler (protoc)
-- Make (for running build commands)
-- Docker and Docker Compose
-
-## Project Structure
+## Updated Project Structure
 
 ```
 .
-├── cmd/                    # Command-line applications
-│   ├── admin.go           # Admin server command
-│   └── user.go            # User server command
-├── internal/              # Private application code
-│   ├── domain/           # Business logic and domain models
-│   │   ├── handler/      # API handlers
-│   │   ├── repository/   # Data access layer
-│   │   └── service/      # Business logic layer
-│   └── server/           # Server implementations
-├── pkg/                   # Public libraries
-│   ├── config/           # Configuration management
-│   ├── database/         # Database connection
-│   └── logger/           # Logging utilities
-├── proto/                # Protocol Buffer definitions
-├── migrations/           # Database migrations
-└── Makefile             # Build and development commands
+├── cmd/                    # Command-line applications (admin, user)
+├── internal/
+│   ├── domain/             # Business logic, handlers, repositories, services
+│   └── server/             # Server entrypoints (now thin, use pkg/server)
+├── pkg/
+│   ├── config/             # Configuration management
+│   ├── core/               # Core models and repositories (shared)
+│   ├── database/           # Database connection and migration
+│   ├── logger/             # Logging utilities
+│   └── server/             # Common server logic (BaseServer, error handling)
+├── proto/                  # Protocol Buffer definitions
+├── migrations/             # Database migrations
+└── Makefile                # Build and development commands
 ```
+
+## Key Improvements
+
+- **Common Server Logic**: All shared server setup (Fiber app, middleware, CORS, rate limiting, error handling) is now in `pkg/server`. Both admin and user servers inherit from this base.
+- **Config-Driven**: All server and app settings are managed via `pkg/config` and `.env`.
+- **Testable & Modular**: All services use dependency injection, and tests are isolated and pass.
+- **Core Domain Sharing**: Shared models and repository interfaces are in `pkg/core`.
 
 ## Getting Started
 
@@ -129,6 +125,12 @@ go run main.go admin
 go run main.go user
 ```
 
+## Running Tests
+
+```bash
+go test ./... -v
+```
+
 ## Development
 
 ### Available Make Commands
@@ -175,6 +177,14 @@ To customize this template for your project:
 ## Environment Variables
 
 The template uses environment variables for configuration. All required variables are listed in the `.env` file template above. The application will automatically load the `.env` file if it exists.
+
+## Dependency Management
+
+- All dependencies are managed via Go modules.
+- If you see a missing dependency error, run:
+  ```bash
+  go mod tidy
+  ```
 
 ## Contributing
 

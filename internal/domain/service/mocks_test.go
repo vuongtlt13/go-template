@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"time"
-	coreRepo "yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
 	"yourapp/pkg/auth"
+	coreRepo "yourapp/pkg/core/repository"
 
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"

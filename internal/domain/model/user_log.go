@@ -2,7 +2,7 @@ package model
 
 import (
 	"time"
-	"yourapp/internal/core/model"
+	"yourapp/pkg/core/model"
 )
 
 type UserLog struct {

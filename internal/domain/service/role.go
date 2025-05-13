@@ -3,10 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
-	coreRepo "yourapp/internal/core/repository"
 	"yourapp/internal/domain/model"
 	"yourapp/internal/domain/repository"
+	coreRepo "yourapp/pkg/core/repository"
 
 	"gorm.io/gorm"
 )
@@ -84,7 +83,10 @@ func (s *roleServiceImpl) AssignPermissions(ctx context.Context, roleID uint64, 
 	// Check if role exists
 	role, err := s.roleRepo.FindByID(ctx, roleID, nil, s.db)
 	if err != nil {
-		return fmt.Errorf("error finding role: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrRoleNotFound
+		}
+		return err
 	}
 	if role == nil {
 		return ErrRoleNotFound
@@ -94,7 +96,10 @@ func (s *roleServiceImpl) AssignPermissions(ctx context.Context, roleID uint64, 
 	for _, permID := range permissionIDs {
 		perm, err := s.permissionRepo.FindByID(ctx, permID, nil, s.db)
 		if err != nil {
-			return fmt.Errorf("error finding permission: %w", err)
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrPermissionNotFound
+			}
+			return err
 		}
 		if perm == nil {
 			return ErrPermissionNotFound
@@ -108,15 +113,16 @@ func (s *roleServiceImpl) AssignPermissions(ctx context.Context, roleID uint64, 
 func (s *roleServiceImpl) GetRolePermissions(ctx context.Context, roleID uint64) ([]model.Permission, error) {
 	role, err := s.roleRepo.FindByID(ctx, roleID, nil, s.db)
 	if err != nil {
-		return nil, fmt.Errorf("error finding role: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrRoleNotFound
+		}
+		return nil, err
+	}
+	if role == nil {
+		return nil, ErrRoleNotFound
 	}
 
-	var permissions []model.Permission
-	if err := s.db.Model(role).Association("Permissions").Find(&permissions); err != nil {
-		return nil, fmt.Errorf("error finding role permissions: %w", err)
-	}
-
-	return permissions, nil
+	return s.roleRepo.GetRolePermissions(ctx, roleID, s.db)
 }
 
 // ListRoles lists roles with pagination
