@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"errors"
-	"yourapp/internal/domain/model"
-	"yourapp/internal/domain/repository"
+	"yourapp/internal/model"
+	"yourapp/internal/repository"
 	coreRepo "yourapp/pkg/core/repository"
 
 	"gorm.io/gorm"

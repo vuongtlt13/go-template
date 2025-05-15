@@ -5,7 +5,7 @@ package admin
 
 import (
 	"context"
-	"yourapp/internal/domain/service"
+	"yourapp/internal/service"
 	"yourapp/pb/admin"
 
 	"connectrpc.com/connect"

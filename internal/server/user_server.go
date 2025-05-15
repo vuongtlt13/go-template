@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"yourapp/internal/domain/handler"
+	"yourapp/internal/handler"
 	"yourapp/pb/auth/authconnect"
 	"yourapp/pkg/config"
 	"yourapp/pkg/server"

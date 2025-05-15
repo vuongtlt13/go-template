@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"yourapp/internal/domain/service"
+	"yourapp/internal/service"
 
 	"github.com/robfig/cron/v3"
 )

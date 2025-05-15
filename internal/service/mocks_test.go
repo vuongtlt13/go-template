@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"time"
-	"yourapp/internal/domain/model"
+	"yourapp/internal/model"
 	"yourapp/pkg/auth"
 	coreRepo "yourapp/pkg/core/repository"
 

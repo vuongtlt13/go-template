@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 
-	"yourapp/internal/domain/model"
+	"yourapp/internal/model"
 )
 
 func TestAuthService_Login(t *testing.T) {

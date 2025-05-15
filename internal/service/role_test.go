@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 
-	"yourapp/internal/domain/model"
+	"yourapp/internal/model"
 )
 
 func TestRoleService_CreateRole(t *testing.T) {

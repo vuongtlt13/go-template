@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
-	"yourapp/internal/domain/model"
-	"yourapp/internal/domain/repository"
+	"yourapp/internal/model"
+	"yourapp/internal/repository"
 
 	"gorm.io/gorm"
 )

@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"yourapp/internal/domain/handler"
-	adminhandler "yourapp/internal/domain/handler/admin"
+	"yourapp/internal/handler"
+	adminhandler "yourapp/internal/handler/admin"
 	"yourapp/pb/admin/adminconnect"
 	"yourapp/pb/auth/authconnect"
 	"yourapp/pkg/config"

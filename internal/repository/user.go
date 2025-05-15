@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"time"
-	"yourapp/internal/domain/model"
+	"yourapp/internal/model"
 	"yourapp/pkg/database"
 
 	"gorm.io/gorm"

@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"yourapp/internal/domain/repository"
-	"yourapp/internal/domain/service"
+	"yourapp/internal/repository"
+	"yourapp/internal/service"
 	"yourapp/pb/auth"
 	authpkg "yourapp/pkg/auth"
 	"yourapp/pkg/database"

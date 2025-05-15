@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"yourapp/internal/domain/model"
+	"yourapp/internal/model"
 	"yourapp/pkg/core/repository"
 )
 

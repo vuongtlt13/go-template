@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"yourapp/internal/domain/model"
-	"yourapp/internal/domain/repository"
-	"yourapp/pkg/auth"
+
+	"yourapp/internal/model"
+	"yourapp/internal/repository"
+	authpkg "yourapp/pkg/auth"
 
 	"gorm.io/gorm"
 )
@@ -30,11 +31,11 @@ type AuthService interface {
 type authService struct {
 	db         *gorm.DB
 	userRepo   repository.UserRepository
-	jwtManager auth.JWTManagerInterface
+	jwtManager authpkg.JWTManagerInterface
 }
 
 // NewAuthService creates a new auth service with the given dependencies
-func NewAuthService(db *gorm.DB, userRepo repository.UserRepository, jwtManager auth.JWTManagerInterface) AuthService {
+func NewAuthService(db *gorm.DB, userRepo repository.UserRepository, jwtManager authpkg.JWTManagerInterface) AuthService {
 	return &authService{
 		db:         db,
 		userRepo:   userRepo,

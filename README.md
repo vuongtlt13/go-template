@@ -41,7 +41,11 @@ A modern Go web application template that provides a solid foundation for buildi
 .
 ├── cmd/                    # Command-line applications (admin, user)
 ├── internal/
-│   ├── domain/             # Business logic, handlers, repositories, services
+│   ├── service/            # Business logic services
+│   ├── model/              # Domain models
+│   ├── repository/         # Data access layer
+│   ├── cron_job/           # Scheduled tasks
+│   ├── handler/            # Request handlers
 │   └── server/             # Server entrypoints (now thin, use pkg/server)
 ├── pkg/
 │   ├── config/             # Configuration management
