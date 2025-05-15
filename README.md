@@ -198,224 +198,51 @@ make migrate-down
 
 The template includes several useful middleware components:
 
-#### Request Middleware
+- **i18n Middleware**: Automatically detects the user's preferred language from the `Accept-Language` header and sets it in the request context. If the language is not supported, it falls back to the default locale.
 
-The request middleware stores the request in the context for easy access throughout the request lifecycle:
+- **Request Middleware**: Logs incoming requests and their details.
 
-```go
-// In your handler
-func (h *Handler) SomeHandler(c *fiber.Ctx) error {
-    // Get request from context
-    req := c.Locals("request").(*fiber.Request)
-    
-    // Access request properties
-    headers := req.Header
-    body := req.Body()
-    params := req.Params
-    query := req.QueryArgs()
-    cookies := req.Cookies()
-    
-    // Do something with request data
-    ...
-}
-```
+### Internationalization (i18n)
 
-#### I18n Middleware
+The template supports internationalization (i18n) for multiple languages. Translations are stored in JSON files under the `i18n/locales/` directory, organized by language code (e.g., `en`, `vi`).
 
-The i18n middleware handles internationalization based on the `Accept-Language` header:
-
-```go
-// In your handler
-func (h *Handler) SomeHandler(c *fiber.Ctx) error {
-    // Get language from context
-    lang := c.Locals("lang").(string)
-    
-    // Get translation using i18n
-    message := i18n.T(c.Context(), "common.hello")
-    
-    return c.JSON(fiber.Map{
-        "message": message,
-        "lang": lang,
-    })
-}
-```
-
-Test with curl:
-```bash
-# English
-curl -H "Accept-Language: en" http://localhost:8080/api/hello
-
-# Vietnamese
-curl -H "Accept-Language: vi" http://localhost:8080/api/hello
-
-# Unsupported language (falls back to English)
-curl -H "Accept-Language: fr" http://localhost:8080/api/hello
-```
-
-## Internationalization (i18n)
-
-The template includes a robust internationalization system that supports multiple languages and nested translation structures.
-
-### Directory Structure
-
-Translation files are organized in a hierarchical structure under `i18n/locales/`:
+#### Translation Files Structure
 
 ```
 i18n/locales/
-├── en/                    # English translations
-│   ├── auth.json         # Authentication-related translations
-│   ├── crud.json         # CRUD operation translations
-│   └── models/           # Model-specific translations
-│       └── user.json     # User model translations
-└── vi/                    # Vietnamese translations
+├── en/
+│   ├── auth.json
+│   ├── crud.json
+│   └── models/
+│       └── user.json
+└── vi/
     ├── auth.json
     ├── crud.json
     └── models/
         └── user.json
 ```
 
-### Translation File Format
+#### Using Translations in Code
 
-Translation files use JSON format with nested structures:
-
-```json
-// i18n/locales/en/auth.json
-{
-  "login": {
-    "title": "Login",
-    "submit": "Sign In",
-    "success": "Login successful",
-    "error": "Invalid credentials"
-  }
-}
-
-// i18n/locales/en/models/user.json
-{
-  "menu_title": "User",
-  "fields": {
-    "email": "Email",
-    "password": "Password"
-  }
-}
-```
-
-### Configuration
-
-Configure i18n in your `.env` file:
-
-```env
-# i18n Configuration
-DEFAULT_LOCALE=en  # Default language (e.g., en, vi)
-```
-
-### Usage
-
-#### 1. Initialize i18n
-
-```go
-import "yourapp/pkg/i18n"
-import "yourapp/pkg/config"
-
-// Initialize i18n with configuration
-i18n.Init(&config.I18nConfig{
-    DefaultLocale: "en",
-    BaseFolder:    "i18n/locales",
-})
-```
-
-#### 2. Using Translations in Handlers
+To use translations in your Go code, import the `i18n` package and call the `T` function:
 
 ```go
 import "yourapp/pkg/i18n"
 
-func (h *Handler) SomeHandler(c *fiber.Ctx) error {
-    // Get translation using context
-    message := i18n.T(c.Context(), "auth.login.title")
-    
-    // Get translation with specific locale
-    message := i18n.T(c.Context(), "models.user.fields.email")
-    
-    return c.JSON(fiber.Map{
-        "message": message,
-    })
+func someFunction(ctx context.Context) {
+    translatedText := i18n.T(ctx, "auth.login.title")
+    // translatedText will be "Login" for English or "Đăng nhập" for Vietnamese
 }
 ```
 
-#### 3. Adding New Translations
+#### i18n API Endpoint
 
-```go
-// Add a new translation programmatically
-i18n.AddTranslation("en", "welcome.message", "Welcome to our application")
-i18n.AddTranslation("vi", "welcome.message", "Chào mừng đến với ứng dụng của chúng tôi")
-```
+The i18n service provides an API endpoint to retrieve translations for a specific language:
 
-### Middleware
+- **Endpoint**: `GET /lang/{language}.json`
+- **Example**: `GET /lang/en.json` returns all English translations.
 
-The i18n middleware automatically detects the user's preferred language from the `Accept-Language` header:
-
-```go
-import "yourapp/pkg/middleware"
-
-app := fiber.New()
-app.Use(middleware.I18nMiddleware)
-```
-
-Test with curl:
-```bash
-# English
-curl -H "Accept-Language: en" http://localhost:8080/api/hello
-
-# Vietnamese
-curl -H "Accept-Language: vi" http://localhost:8080/api/hello
-
-# Multiple languages (first supported language is used)
-curl -H "Accept-Language: en,vi;q=0.9" http://localhost:8080/api/hello
-
-# Unsupported language (falls back to default)
-curl -H "Accept-Language: fr" http://localhost:8080/api/hello
-```
-
-### Adding a New Language
-
-1. Create a new directory under `i18n/locales/` for your language code (e.g., `fr` for French)
-2. Copy the translation files from an existing language
-3. Translate the content
-4. The language will be automatically detected and supported
-
-Example:
-```bash
-# Create French translations
-mkdir -p i18n/locales/fr/models
-cp i18n/locales/en/auth.json i18n/locales/fr/
-cp i18n/locales/en/crud.json i18n/locales/fr/
-cp i18n/locales/en/models/user.json i18n/locales/fr/models/
-```
-
-### Best Practices
-
-1. **Organize Translations**: Group related translations in separate files (e.g., `auth.json`, `crud.json`)
-2. **Use Nested Structures**: Utilize nested JSON structures for better organization
-3. **Consistent Keys**: Use consistent key naming across all languages
-4. **Default Fallback**: Always provide translations for the default locale
-5. **Context-Aware**: Use the context to determine the user's preferred language
-
-## Customization
-
-To customize this template for your project:
-
-1. Define your domain models in `internal/model`
-2. Create your service interfaces in `internal/service`
-3. Implement your repositories in `internal/repository`
-4. Add your API definitions in `pb` directory
-5. Update the database schema in `migrations`
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+The response is a JSON-encoded map of translation keys to their values.
 
 ## License
 
