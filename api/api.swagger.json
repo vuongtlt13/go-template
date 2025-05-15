@@ -19,6 +19,9 @@
     },
     {
       "name": "UserService"
+    },
+    {
+      "name": "I18nService"
     }
   ],
   "consumes": [
@@ -608,6 +611,38 @@
           "HealthService"
         ]
       }
+    },
+    "/lang/{language}": {
+      "get": {
+        "summary": "GetTranslations returns all translations for a specific language",
+        "operationId": "I18nService_GetTranslations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/i18nGetTranslationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "language",
+            "description": "language is the language code (e.g., \"en\", \"vi\")",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "I18nService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -718,6 +753,9 @@
       "properties": {
         "success": {
           "type": "boolean"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -726,6 +764,9 @@
       "properties": {
         "success": {
           "type": "boolean"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -750,6 +791,9 @@
         "total": {
           "type": "integer",
           "format": "int64"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -766,6 +810,9 @@
         "total": {
           "type": "integer",
           "format": "int64"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -814,6 +861,9 @@
       "properties": {
         "permission": {
           "$ref": "#/definitions/adminPermission"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -840,6 +890,9 @@
       "properties": {
         "role": {
           "$ref": "#/definitions/adminRole"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -912,6 +965,17 @@
     },
     "healthHealthCheckResponse": {
       "type": "object"
+    },
+    "i18nGetTranslationsResponse": {
+      "type": "object",
+      "properties": {
+        "translations": {
+          "type": "string",
+          "format": "byte",
+          "title": "translations is a JSON-encoded map of translation keys to their values"
+        }
+      },
+      "title": "GetTranslationsResponse represents a response containing translations"
     },
     "protobufAny": {
       "type": "object",

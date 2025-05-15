@@ -77,6 +77,7 @@ message DeletePermissionRequest {
 
 message DeletePermissionResponse {
   bool success = 1;
+  string message = 2;
 }
 
 message ListPermissionsRequest {
@@ -87,8 +88,10 @@ message ListPermissionsRequest {
 message ListPermissionsResponse {
   repeated Permission permissions = 1;
   uint32 total = 2;
+  string message = 3;
 }
 
 message PermissionResponse {
   Permission permission = 1;
+  string message = 2;
 } 

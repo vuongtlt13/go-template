@@ -1,0 +1,40 @@
+$selected-color: #bcd8f5 !default;
+$hover-color: #e0edf4 !default;
+
+.v-data-table{
+  &:not(.editable-datatable) {
+    tbody tr:hover {
+      background-color: $hover-color !important;
+    }
+    tbody tr.v-data-table__selected:not(:hover) {
+      background-color: $selected-color !important;
+    }
+  }
+
+  &.editable-datatable {
+    table {
+      thead {
+        tr th {
+          border: solid 1px gainsboro;
+        }
+      }
+
+      tbody {
+        tr td {
+          border: solid 1px gainsboro;
+          &.selectedCell {
+            border: solid 2px blue !important;
+          }
+        }
+        tr:hover {
+          background-color: $hover-color !important;
+        }
+      }
+    }
+  }
+}
+
+
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td, .v-data-table > .v-data-table__wrapper > table > tbody > tr > th, .v-data-table > .v-data-table__wrapper > table > thead > tr > td, .v-data-table > .v-data-table__wrapper > table > thead > tr > th, .v-data-table > .v-data-table__wrapper > table > tfoot > tr > td, .v-data-table > .v-data-table__wrapper > table > tfoot > tr > th {
+  padding: 5px !important;
+}

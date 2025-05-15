@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "create": "Tạo mới",
+    "read": "Xem chi tiết",
+    "update": "Cập nhật",
+    "delete": "Xóa",
+    "list": "Danh sách",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "export": "Xuất",
+    "import": "Nhập"
+  },
+  "messages": {
+    "create_success": "Tạo mới thành công",
+    "create_failed": "Tạo mới thất bại",
+    "read_success": "Lấy thông tin thành công",
+    "read_failed": "Lấy thông tin thất bại",
+    "update_success": "Cập nhật thành công",
+    "update_failed": "Cập nhật thất bại",
+    "delete_success": "Xóa thành công",
+    "delete_failed": "Xóa thất bại",
+    "not_found": "Không tìm thấy bản ghi",
+    "validation_error": "Lỗi xác thực",
+    "server_error": "Lỗi máy chủ"
+  },
+  "confirmations": {
+    "delete": "Bạn có chắc chắn muốn xóa bản ghi này?",
+    "cancel": "Bạn có chắc chắn muốn hủy?",
+    "discard": "Bạn có chắc chắn muốn hủy các thay đổi?"
+  }
+} 

@@ -1,0 +1,13 @@
+{
+  "menu_title": "Người dùng",
+  "singular": "Người dùng",
+  "plural": "Danh sách người dùng",
+  "fields": {
+    "id": "Mã",
+    "username": "Tên đăng nhập",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "created_at": "Ngày tạo",
+    "updated_at": "Ngày cập nhật"
+  }
+} 

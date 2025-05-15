@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package yourapp.i18n;
+
+import "google/api/annotations.proto";
+import "envoyproxy/validate/validate.proto";
+
+option go_package = "yourapp/pb/i18n;i18n";
+
+// I18n service provides internationalization functionality
+service I18nService {
+  // GetTranslations returns all translations for a specific language
+  rpc GetTranslations(GetTranslationsRequest) returns (GetTranslationsResponse) {
+    option (google.api.http) = {
+      get: "/lang/{language}"
+    };
+  }
+}
+
+// GetTranslationsRequest represents a request to get translations
+message GetTranslationsRequest {
+  // language is the language code (e.g., "en", "vi")
+  string language = 1 [(validate.rules).string = {
+    pattern: "^[a-z]{2}$"
+    min_len: 2
+    max_len: 2
+  }];
+}
+
+// GetTranslationsResponse represents a response containing translations
+message GetTranslationsResponse {
+  // translations is a JSON-encoded map of translation keys to their values
+  bytes translations = 1;
+} 

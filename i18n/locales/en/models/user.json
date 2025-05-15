@@ -1,0 +1,13 @@
+{
+  "menu_title": "User",
+  "singular": "User",
+  "plural": "Users",
+  "fields": {
+    "id": "Id",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "created_at": "Created at",
+    "updated_at": "Updated at"
+    }
+}

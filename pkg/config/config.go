@@ -19,6 +19,7 @@ type Config struct {
 	Email    EmailConfig  `envPrefix:"EMAIL_"`
 	Redis    RedisConfig  `envPrefix:"REDIS_"`
 	Job      JobConfig    `envPrefix:"JOB_"`
+	I18n     I18nConfig   `envPrefix:"I18N_"`
 }
 
 func (c *Config) IsProduction() bool {
@@ -77,6 +78,11 @@ type JobConfig struct {
 	Concurrency int `env:"CONCURRENCY" envDefault:"5"`
 }
 
+type I18nConfig struct {
+	DefaultLocale string `env:"DEFAULT_LOCALE" envDefault:"en"`
+	BaseFolder    string `env:"BASE_FOLDER" envDefault:"i18n/locales"`
+}
+
 var (
 	instance *Config
 	once     sync.Once
@@ -96,7 +102,7 @@ func GetConfig() *Config {
 	return instance
 }
 
-// loadConfig loads the configuration from file
+// loadConfig loads the configuration from system environment variables
 func loadConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
@@ -106,4 +112,9 @@ func loadConfig() (*Config, error) {
 	viper.Unmarshal(&cfg.Server.App)
 
 	return cfg, nil
+}
+
+// Get is an alias for GetConfig for backward compatibility
+func Get() *Config {
+	return GetConfig()
 }

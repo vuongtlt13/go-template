@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "create": "Create",
+    "read": "View",
+    "update": "Update",
+    "delete": "Delete",
+    "list": "List",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import"
+  },
+  "messages": {
+    "create_success": "Created successfully",
+    "create_failed": "Creation failed",
+    "read_success": "Retrieved successfully",
+    "read_failed": "Retrieval failed",
+    "update_success": "Updated successfully",
+    "update_failed": "Update failed",
+    "delete_success": "Deleted successfully",
+    "delete_failed": "Deletion failed",
+    "not_found": "Record not found",
+    "validation_error": "Validation error",
+    "server_error": "Server error"
+  },
+  "confirmations": {
+    "delete": "Are you sure you want to delete this record?",
+    "cancel": "Are you sure you want to cancel?",
+    "discard": "Are you sure you want to discard changes?"
+  }
+} 

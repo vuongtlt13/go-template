@@ -71,6 +71,7 @@ message DeleteRoleRequest {
 
 message DeleteRoleResponse {
   bool success = 1;
+  string message = 2;
 }
 
 message ListRolesRequest {
@@ -81,8 +82,10 @@ message ListRolesRequest {
 message ListRolesResponse {
   repeated Role roles = 1;
   uint32 total = 2;
+  string message = 3;
 }
 
 message RoleResponse {
   Role role = 1;
+  string message = 2;
 } 

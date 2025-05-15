@@ -34,7 +34,7 @@ gen-proto: remove-old-pb
 	  --openapiv2_out=api \
       --openapiv2_opt logtostderr=true \
       --openapiv2_opt generate_unbound_methods=true,allow_merge=true,merge_file_name=api \
-	  proto/auth/*.proto proto/health/*.proto proto/admin/*.proto
+	  proto/auth/*.proto proto/health/*.proto proto/admin/*.proto proto/i18n/*.proto
 
 # Run database migrations up
 migrate-up:

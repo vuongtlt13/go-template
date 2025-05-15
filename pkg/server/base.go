@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"yourapp/pkg/config"
+	"yourapp/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -35,6 +36,8 @@ func NewBaseServer(cfg *config.Config, serverType string) *BaseServer {
 	// Add middleware
 	s.app.Use(recover.New())
 	s.app.Use(logger.New())
+	s.app.Use(middleware.RequestMiddleware) // Store request in context
+	s.app.Use(middleware.I18nMiddleware)    // Handle internationalization
 
 	// Configure CORS
 	allowOrigins := "*"

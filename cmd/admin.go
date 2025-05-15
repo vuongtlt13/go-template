@@ -8,6 +8,7 @@ import (
 	"time"
 	"yourapp/internal/server"
 	"yourapp/pkg/config"
+	"yourapp/pkg/i18n"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -28,6 +29,9 @@ func runAdminServer(cmd *cobra.Command, args []string) {
 
 	// Get config
 	cfg := config.GetConfig()
+
+	// Initialize i18n
+	i18n.Init(&cfg.I18n)
 
 	// Create and start server
 	sv := server.NewAdminServer(cfg)
