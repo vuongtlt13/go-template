@@ -51,7 +51,7 @@ func (s *User) Start() error {
 	})
 
 	// Start server
-	return app.Listen(fmt.Sprintf(":%d", s.GetConfig().Server.UserPort))
+	return app.Listen(fmt.Sprintf(":%d", s.GetConfig().Server.Port))
 }
 
 // Shutdown gracefully shuts down the server

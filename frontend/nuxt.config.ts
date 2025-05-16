@@ -63,7 +63,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Public keys that are exposed to the client
     public: {
-      baseURL: `${process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/api`,
+      baseURL: `${process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}`,
     },
   },
   notivue: {

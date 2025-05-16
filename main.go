@@ -20,6 +20,7 @@ func init() {
 func main() {
 	rootCmd := &cobra.Command{Use: "yourapp"}
 	rootCmd.AddCommand(cmd.AdminCmd)
+	rootCmd.AddCommand(cmd.MigrateCmd)
 	rootCmd.AddCommand(cmd.UserCmd) // Optional: keep if you want user server support
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

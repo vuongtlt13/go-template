@@ -27,60 +27,59 @@ func (c *Config) IsProduction() bool {
 }
 
 type ServerConfig struct {
-	AdminPort int    `mapstructure:"admin_port"`
-	UserPort  int    `mapstructure:"user_port"`
-	Cors      string `mapstructure:"cors"`
-	App       AppConfig
+	Port int    `env:"PORT" mapstructure:"port" envDefault:"8000"`
+	Cors string `env:"CORS" mapstructure:"cors"`
+	App  AppConfig
 }
 
 type AppConfig struct {
-	Name         string        `mapstructure:"name"`
-	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout time.Duration `mapstructure:"write_timeout"`
-	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
+	Name         string        `env:"NAME" mapstructure:"name"`
+	ReadTimeout  time.Duration `env:"READ_TIMEOUT" mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" mapstructure:"write_timeout"`
+	IdleTimeout  time.Duration `env:"IDLE_TIMEOUT" mapstructure:"idle_timeout"`
 	RateLimit    RateLimitConfig
 }
 
 type RateLimitConfig struct {
-	Max        int           `mapstructure:"max"`
-	Expiration time.Duration `mapstructure:"expiration"`
+	Max        int           `env:"MAX" mapstructure:"max"`
+	Expiration time.Duration `env:"EXPIRATION" mapstructure:"expiration"`
 }
 
 type DBConfig struct {
-	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     int    `env:"PORT" envDefault:"5432"`
-	User     string `env:"USER" envDefault:"postgres"`
-	Password string `env:"PASSWORD" envDefault:"postgres"`
-	Name     string `env:"NAME" envDefault:"postgres"`
+	Host     string `env:"HOST" mapstructure:"host" envDefault:"localhost"`
+	Port     int    `env:"PORT" mapstructure:"port" envDefault:"5432"`
+	User     string `env:"USER" mapstructure:"user" envDefault:"postgres"`
+	Password string `env:"PASSWORD" mapstructure:"password" envDefault:"postgres"`
+	Name     string `env:"NAME" mapstructure:"name" envDefault:"postgres"`
 }
 
 type JWTConfig struct {
-	Secret       string        `env:"SECRET,required"`
-	ExpirePeriod time.Duration `env:"EXPIRE_PERIOD" envDefault:"24h"`
+	Secret       string        `env:"SECRET" mapstructure:"secret,required"`
+	ExpirePeriod time.Duration `env:"EXPIRE_PERIOD" mapstructure:"expire_period" envDefault:"24h"`
 }
 
 type EmailConfig struct {
-	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     int    `env:"PORT" envDefault:"1025"`
-	Username string `env:"USERNAME"`
-	Password string `env:"PASSWORD"`
-	From     string `env:"FROM"`
+	Host     string `env:"HOST" mapstructure:"host" envDefault:"localhost"`
+	Port     int    `env:"PORT" mapstructure:"port" envDefault:"1025"`
+	Username string `env:"USERNAME" mapstructure:"username"`
+	Password string `env:"PASSWORD" mapstructure:"password"`
+	From     string `env:"FROM" mapstructure:"from"`
 }
 
 type RedisConfig struct {
-	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     int    `env:"PORT" envDefault:"6379"`
-	Password string `env:"PASSWORD" envDefault:""`
-	DB       int    `env:"DB" envDefault:"0"`
+	Host     string `env:"HOST" mapstructure:"host" envDefault:"localhost"`
+	Port     int    `env:"PORT" mapstructure:"port" envDefault:"6379"`
+	Password string `env:"PASSWORD" mapstructure:"password" envDefault:""`
+	DB       int    `env:"DB" mapstructure:"db" envDefault:"0"`
 }
 
 type JobConfig struct {
-	Concurrency int `env:"CONCURRENCY" envDefault:"5"`
+	Concurrency int `env:"CONCURRENCY" mapstructure:"concurrency" envDefault:"5"`
 }
 
 type I18nConfig struct {
-	DefaultLocale string `env:"DEFAULT_LOCALE" envDefault:"en"`
-	BaseFolder    string `env:"BASE_FOLDER" envDefault:"i18n/locales"`
+	DefaultLocale string `env:"DEFAULT_LOCALE" mapstructure:"default_locale" envDefault:"en"`
+	BaseFolder    string `env:"BASE_FOLDER" mapstructure:"base_folder" envDefault:"i18n/locales"`
 }
 
 var (
@@ -109,7 +108,10 @@ func loadConfig() (*Config, error) {
 		logger.GetLogger().Fatal("Failed to parse config: %v", err)
 	}
 
-	viper.Unmarshal(&cfg.Server.App)
+	err := viper.Unmarshal(&cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	return cfg, nil
 }

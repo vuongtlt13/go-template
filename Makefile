@@ -31,6 +31,8 @@ gen-proto: remove-old-pb
 	  --go-grpc_opt paths=source_relative \
 	  --connect-go_out=pb \
 	  --connect-go_opt paths=source_relative \
+	  --validate_out="lang=go:pb" \
+      --validate_opt paths=source_relative \
 	  --openapiv2_out=api \
       --openapiv2_opt logtostderr=true \
       --openapiv2_opt generate_unbound_methods=true,allow_merge=true,merge_file_name=api \

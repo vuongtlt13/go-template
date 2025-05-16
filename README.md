@@ -147,6 +147,26 @@ DB_NAME=postgres
 # JWT Configuration
 JWT_SECRET=your-secret-key
 JWT_EXPIRE_PERIOD=24h
+
+# Email Configuration
+EMAIL_HOST=localhost
+EMAIL_PORT=1025
+EMAIL_USERNAME=
+EMAIL_PASSWORD=
+EMAIL_FROM=
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+
+# Job Configuration
+JOB_CONCURRENCY=5
+
+# I18n Configuration
+I18N_DEFAULT_LOCALE=en
+I18N_BASE_FOLDER=i18n/locales
 ```
 
 ## Running the Application

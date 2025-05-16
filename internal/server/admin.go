@@ -15,7 +15,6 @@ import (
 	"yourapp/pkg/database"
 	"yourapp/pkg/server"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"gorm.io/gorm"
 )
@@ -64,20 +63,14 @@ func (s *Admin) Start() error {
 	// Mount Connect services
 	app := s.GetApp()
 
-	app.All(authPath+"*", adaptor.HTTPHandler(authConnectHandler))
+	app.All("/auth"authPath+"*", adaptor.HTTPHandler(authConnectHandler))
 	app.All(userPath+"*", adaptor.HTTPHandler(userConnectHandler))
 	app.All(rolePath+"*", adaptor.HTTPHandler(roleConnectHandler))
 	app.All(permissionPath+"*", adaptor.HTTPHandler(permissionConnectHandler))
 	app.All(i18nPath+"*", adaptor.HTTPHandler(i18nConnectHandler))
 
-	// Optionally, support /lang/:lang.json
-	app.All("/lang/:lang.json", func(c *fiber.Ctx) error {
-		c.Path("/lang/" + c.Params("lang"))
-		return adaptor.HTTPHandler(i18nConnectHandler)(c)
-	})
-
 	// Start server
-	return app.Listen(fmt.Sprintf(":%d", s.GetConfig().Server.AdminPort))
+	return app.Listen(fmt.Sprintf(":%d", s.GetConfig().Server.Port))
 }
 
 // Shutdown gracefully shuts down the server
