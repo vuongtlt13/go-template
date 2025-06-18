@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 	"yourapp/internal/model"
-	"yourapp/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -28,10 +27,10 @@ var (
 )
 
 // NewUserRepository returns the singleton instance of UserRepository
-func NewUserRepository() UserRepository {
+func NewUserRepository(db *gorm.DB) UserRepository {
 	if userRepoInstance == nil {
 		userRepoInstance = &userRepository{
-			db: database.GetDatabase(),
+			db: db,
 		}
 	}
 	return userRepoInstance
