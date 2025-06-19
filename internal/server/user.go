@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"yourapp/pkg/database"
 
 	"github.com/gofiber/swagger"
 
@@ -24,14 +25,16 @@ type User struct {
 
 // NewUserServer creates a new user server instance
 func NewUserServer(cfg *config.Config, logger logger.Logger) *User {
+	db := database.GetDatabase()
+
 	// Create repositories
-	userRepo := repository.NewUserRepository(nil) // TODO: Pass DB connection
+	userRepo := repository.NewUserRepository(db) // TODO: Pass DB connection
 
 	// Create JWT manager
-	jwtManager := auth.NewJWTManager(cfg.JWT.Secret, cfg.JWT.ExpirePeriod)
+	jwtManager := auth.GetJWTManager()
 
 	// Create services
-	authService := service.NewAuthService(nil, userRepo, jwtManager) // TODO: Pass DB connection
+	authService := service.NewAuthService(db, userRepo, jwtManager) // TODO: Pass DB connection
 
 	return &User{
 		BaseServer:  server.NewBaseServer(cfg, "User"),

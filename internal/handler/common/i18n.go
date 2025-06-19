@@ -8,13 +8,10 @@ import (
 )
 
 type I18nHandler struct {
-	i18n *i18n.I18n
 }
 
-func NewI18nHandler(i18n *i18n.I18n) *I18nHandler {
-	return &I18nHandler{
-		i18n: i18n,
-	}
+func NewI18nHandler() *I18nHandler {
+	return &I18nHandler{}
 }
 
 // GetTranslations returns all translations for a specific language

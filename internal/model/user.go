@@ -12,11 +12,11 @@ type User struct {
 	ID        uint64         `gorm:"primarykey" json:"id"`
 	Email     string         `gorm:"size:100;not null;uniqueIndex" json:"email"`
 	Password  string         `gorm:"size:100;not null" json:"-"`
-	FirstName string         `gorm:"size:50" json:"first_name"`
-	LastName  string         `gorm:"size:50" json:"last_name"`
-	IsActive  bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	FirstName string         `gorm:"size:50" json:"firstName"`
+	LastName  string         `gorm:"size:50" json:"lastName"`
+	IsActive  bool           `gorm:"default:true" json:"isActive"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Roles     []Role         `gorm:"many2many:user_roles;" json:"roles,omitempty"`
 }

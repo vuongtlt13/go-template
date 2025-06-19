@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/swagger"
 
+	_ "yourapp/docs"
 	"yourapp/internal/routes"
 	"yourapp/pkg/config"
 	"yourapp/pkg/logger"

@@ -5,6 +5,7 @@ import (
 	"log"
 	"yourapp/pkg/config"
 	"yourapp/pkg/middleware"
+	"yourapp/pkg/response"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -31,6 +32,7 @@ func NewBaseServer(cfg *config.Config, serverType string) *BaseServer {
 		ReadTimeout:  cfg.Server.App.ReadTimeout,
 		WriteTimeout: cfg.Server.App.WriteTimeout,
 		IdleTimeout:  cfg.Server.App.IdleTimeout,
+		ErrorHandler: response.HandlerError,
 	})
 
 	// Add middleware

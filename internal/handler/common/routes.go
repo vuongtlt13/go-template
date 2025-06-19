@@ -11,11 +11,11 @@ import (
 type Router struct {
 	app         *fiber.App
 	cfg         *config.Config
-	authService *service.AuthService
+	authService service.AuthService
 }
 
 // NewRouter creates a new common router
-func NewRouter(app *fiber.App, cfg *config.Config, authService *service.AuthService) *Router {
+func NewRouter(app *fiber.App, cfg *config.Config, authService service.AuthService) *Router {
 	return &Router{
 		app:         app,
 		cfg:         cfg,
@@ -36,6 +36,4 @@ func (r *Router) Register() {
 	auth := api.Group("/auth")
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/register", authHandler.Register)
-	auth.Post("/refresh", authHandler.RefreshToken)
-	auth.Post("/logout", authHandler.Logout)
 }

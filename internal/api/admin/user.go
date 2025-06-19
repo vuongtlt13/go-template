@@ -2,6 +2,7 @@ package admin
 
 import (
 	"yourapp/internal/handler/admin"
+	"yourapp/pkg/database"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,11 +24,11 @@ func (r *UserRouter) Register(rootRouter fiber.Router) {
 	api := rootRouter.Group("/crud/user")
 
 	// User management
-	userHandler := admin.NewUserHandler()
-	api.Get("/users", userHandler.GetUsers)
-	api.Get("/users/:id", userHandler.GetUser)
-	api.Post("/users", userHandler.CreateUser)
-	api.Put("/users/:id", userHandler.UpdateUser)
-	api.Delete("/users/:id", userHandler.DeleteUser)
+	userHandler := admin.NewUserHandler(database.GetDatabase())
+	api.Get("/", userHandler.GetUsers)
+	api.Get("/:id", userHandler.GetUser)
+	//api.Post("/", userHandler.CreateUser)
+	//api.Put("/:id", userHandler.UpdateUser)
+	//api.Delete("/:id", userHandler.DeleteUser)
 
 }

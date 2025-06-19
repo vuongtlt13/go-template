@@ -41,7 +41,7 @@ type AppConfig struct {
 }
 
 type RateLimitConfig struct {
-	Max        int           `env:"MAX" mapstructure:"max"`
+	Max        int           `env:"MAX" mapstructure:"max" envDefault:"60"`
 	Expiration time.Duration `env:"EXPIRATION" mapstructure:"expiration"`
 }
 
