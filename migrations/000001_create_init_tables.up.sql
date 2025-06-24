@@ -3,10 +3,9 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
-    role_id INTEGER,
+    full_name VARCHAR(255),
     is_active BOOLEAN DEFAULT true,
+    is_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
@@ -40,14 +39,8 @@ CREATE TABLE role_permissions (
     PRIMARY KEY (role_id, permission_id)
 );
 
--- Add foreign key constraint for users.role_id
-ALTER TABLE users
-ADD CONSTRAINT fk_users_role
-FOREIGN KEY (role_id) REFERENCES roles(id);
-
 -- Create indexes
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role_id ON users(role_id);
 CREATE INDEX idx_roles_name ON roles(name);
 CREATE INDEX idx_permissions_name ON permissions(name);
 CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);

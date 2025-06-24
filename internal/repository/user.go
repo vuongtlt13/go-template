@@ -9,13 +9,14 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, user *model.User) error
+	Create(ctx context.Context, obj *model.User) error
 	GetByID(ctx context.Context, id uint) (*model.User, error)
-	GetByEmail(ctx context.Context, email string) (*model.User, error)
-	Update(ctx context.Context, user *model.User) error
+	Update(ctx context.Context, obj *model.User) error
 	Delete(ctx context.Context, id uint) error
 	List(ctx context.Context) ([]*model.User, error)
-	DeleteUnverifiedUsersCreatedBefore(ctx context.Context, cutoffTime time.Time) error
+	// Thêm các method đặc thù nếu muốn
+	GetByEmail(ctx context.Context, email string) (*model.User, error)
+	DeleteUnverifiedUsersCreatedBefore(ctx context.Context, t time.Time) error
 }
 
 type userRepository struct {
@@ -37,33 +38,23 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 // Create creates a new user
-func (r *userRepository) Create(ctx context.Context, user *model.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
+func (r *userRepository) Create(ctx context.Context, obj *model.User) error {
+	return r.db.WithContext(ctx).Create(obj).Error
 }
 
 // GetByID retrieves a user by ID
 func (r *userRepository) GetByID(ctx context.Context, id uint) (*model.User, error) {
-	var user model.User
-	err := r.db.WithContext(ctx).First(&user, id).Error
+	var obj model.User
+	err := r.db.WithContext(ctx).First(&obj, id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
-}
-
-// GetByEmail retrieves a user by email
-func (r *userRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
-	var user model.User
-	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+	return &obj, nil
 }
 
 // Update updates a user
-func (r *userRepository) Update(ctx context.Context, user *model.User) error {
-	return r.db.WithContext(ctx).Save(user).Error
+func (r *userRepository) Update(ctx context.Context, obj *model.User) error {
+	return r.db.WithContext(ctx).Save(obj).Error
 }
 
 // Delete deletes a user
@@ -73,17 +64,27 @@ func (r *userRepository) Delete(ctx context.Context, id uint) error {
 
 // List retrieves all users
 func (r *userRepository) List(ctx context.Context) ([]*model.User, error) {
-	var users []*model.User
-	err := r.db.WithContext(ctx).Find(&users).Error
+	var objs []*model.User
+	err := r.db.WithContext(ctx).Find(&objs).Error
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return objs, nil
 }
 
-// DeleteUnverifiedUsersCreatedBefore deletes unverified users created before the cutoff time
-func (r *userRepository) DeleteUnverifiedUsersCreatedBefore(ctx context.Context, cutoffTime time.Time) error {
+// GetByEmail retrieves a user by email
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+	var obj model.User
+	err := r.db.WithContext(ctx).Where("email = ?", email).First(&obj).Error
+	if err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+// DeleteUnverifiedUsersCreatedBefore deletes unverified users created before a given time
+func (r *userRepository) DeleteUnverifiedUsersCreatedBefore(ctx context.Context, t time.Time) error {
 	return r.db.WithContext(ctx).
-		Where("is_verified = ? AND created_at < ?", false, cutoffTime).
+		Where("is_active = ? AND created_at < ?", false, t).
 		Delete(&model.User{}).Error
 }

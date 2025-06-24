@@ -42,3 +42,15 @@ func (h *I18nHandler) GetTranslations(c *fiber.Ctx) error {
 func (h *I18nHandler) RegisterRoutes(app *fiber.App) {
 	app.Get("/api/v1/i18n/:lang", h.GetTranslations)
 }
+
+// GetI18n returns i18n translations
+// @Summary Get i18n translations
+// @Description Get all translations for the current language
+// @Tags i18n
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /api/i18n [get]
+func (h *I18nHandler) GetI18n(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"message": "i18n handler stub"})
+}

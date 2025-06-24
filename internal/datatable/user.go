@@ -9,18 +9,17 @@ import (
 )
 
 type UserDataTable struct {
-	datatable.BaseDataTable
+	*datatable.BaseDataTable
 }
 
 func NewUserDataTable(cfg *datatable.DataTaleConfig) *UserDataTable {
 	dt := &UserDataTable{
-		datatable.NewBaseDataTable(cfg, database.GetDatabase()),
+		BaseDataTable: datatable.NewBaseDataTable(
+			cfg,
+			database.GetDatabase(),
+		),
 	}
-	dt.Query = dt.GetQuery()
-	dt.Columns = dt.GetColumns()
-	dt.ModifyDatatable()
-	dt.ReducerFunc = dt.Reducer
-	dt.BeforeProcessFunc = dt.BeforeProcess
+	dt.SetOverride(dt)
 	return dt
 }
 
@@ -33,18 +32,19 @@ func (udt *UserDataTable) GetQuery() *gorm.DB {
 // GetColumns returns the column definitions
 // Override this method in child classes to define columns
 func (udt *UserDataTable) GetColumns() []*datatable.ColumnDefinition {
-	return []*datatable.ColumnDefinition{}
+	return []*datatable.ColumnDefinition{
+		{Data: "email", Searchable: true, Orderable: true, Exportable: true, Printable: true},
+		{Data: "full_name", Searchable: true, Orderable: true, Exportable: true, Printable: true},
+		{Data: "is_active", Searchable: false, Orderable: true, Exportable: true, Printable: true},
+		{Data: "is_admin", Searchable: false, Orderable: true, Exportable: true, Printable: true},
+	}
 }
 
 // ModifyDatatable is used to modify the datatable
-func (udt *UserDataTable) ModifyDatatable() {
+func (udt *UserDataTable) ModifyDatatable() {}
 
-}
-
-// Reducer is used to modify the datatable
-func (udt *UserDataTable) Reducer(rows []interface{}) []interface{} {
-	return rows
-}
+// AfterProcess
+func (udt *UserDataTable) AfterProcess() {}
 
 // BeforeProcess
 func (udt *UserDataTable) BeforeProcess() {

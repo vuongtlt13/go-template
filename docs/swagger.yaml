@@ -135,6 +135,44 @@ paths:
       - application/json
       description: Retrieve a list of users with datatable support (pagination, filtering,
         etc.)
+      parameters:
+      - description: Keyword for searching
+        in: query
+        name: q
+        type: string
+      - default: 0
+        description: Skip (offset)
+        in: query
+        name: s
+        type: integer
+      - default: 25
+        description: Limit (items per page)
+        in: query
+        name: ipp
+        type: integer
+      - collectionFormat: csv
+        description: Sort columns (e.g. sb[]=email&sb[]=id)
+        in: query
+        items:
+          type: string
+        name: sb[]
+        type: array
+      - collectionFormat: csv
+        description: Sort directions (e.g. sd[]=asc&sd[]=desc)
+        in: query
+        items:
+          type: string
+        name: sd[]
+        type: array
+      - default: ajax
+        description: Action type (ajax, excel, csv, pdf)
+        in: query
+        name: action
+        type: string
+      - description: Selected ids (JSON array or comma-separated)
+        in: query
+        name: ids
+        type: string
       produces:
       - application/json
       responses:

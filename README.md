@@ -11,7 +11,8 @@ A modern Go web application template that provides a solid foundation for buildi
   - Role-based access control (RBAC)
   - Admin dashboard capabilities
   - Internationalization (i18n) support
-  - Real-time communication with WebSocket
+  - **Common API**: health, auth, i18n, profile (shared between admin and user)
+  - Code generator for layers (repository, schema, datatable, service, handler)
 
 - **API Architecture**
 
@@ -47,7 +48,6 @@ A modern Go web application template that provides a solid foundation for buildi
 | Component                   | Technology              | Notes                              |
 | --------------------------- | ----------------------- | ---------------------------------- |
 | Web Framework               | Fiber                   | Fast, lightweight, and easy to use |
-| Real-time                   | gofiber/websocket       | Built-in WebSocket support         |
 | Request/Response Validation | go-playground/validator | Standard Go validation             |
 | OpenAPI Docs                | swaggo/swag             | Auto-generated Swagger UI          |
 | Config Management           | spf13/viper             | Read from .env, config.yml, etc.   |
@@ -60,23 +60,47 @@ A modern Go web application template that provides a solid foundation for buildi
 
 ```
 .
-├── cmd/                    # Command line applications
-├── internal/              # Private application code
-│   ├── api/              # API handlers
-│   │   └── v1/          # API version 1
-│   ├── config/          # Configuration
-│   ├── middleware/      # HTTP middleware
-│   ├── model/          # Data models
-│   ├── repository/     # Data access layer
-│   ├── service/        # Business logic
-│   ├── validator/      # Request validation
-│   └── websocket/      # WebSocket handlers
-├── pkg/                 # Public library code
-├── migrations/          # Database migrations
-├── docs/               # Swagger documentation
-├── config.yaml         # Configuration file
-├── docker-compose.yaml # Docker services
-└── Makefile           # Build commands
+├── cmd/                    # Command line entry points (admin, user, migrations)
+├── internal/               # Private application code (main backend logic)
+│   ├── api/                # API routers (grouped by common, admin, user)
+│   ├── config/             # Application configuration logic
+│   ├── cron_job/           # Scheduled/recurring jobs (cron tasks)
+│   ├── datatable/          # Datatable logic for listing/filtering data
+│   ├── handler/            # HTTP handlers (grouped by common, admin, user)
+│   ├── middleware/         # HTTP middleware (auth, logging, etc.)
+│   ├── model/              # Data models (GORM models, domain entities)
+│   ├── repository/         # Data access layer (DB queries, repository pattern)
+│   ├── routes/             # Route registration (admin, user)
+│   ├── schema/             # Request/response schemas (DTOs, validation)
+│   ├── server/             # Server startup and configuration
+│   ├── service/            # Business logic/services
+│   └── validator/          # Custom request validation logic
+├── pkg/                    # Public library code (reusable across projects)
+│   ├── auth/               # Authentication helpers/utilities
+│   ├── config/             # Shared config utilities
+│   ├── core/               # Core utilities and helpers
+│   ├── datatable/          # Datatable utilities
+│   ├── database/           # Database connection and helpers
+│   ├── generator/          # Code generator for CRUD layers
+│   ├── i18n/               # Internationalization helpers
+│   ├── logger/             # Logging utilities
+│   ├── middleware/         # Shared middleware utilities
+│   ├── response/           # Standardized API response helpers
+│   ├── schema/             # Shared schema utilities
+│   └── server/             # Server utilities
+├── api/                    # (Empty or reserved for future API definitions)
+├── docs/                   # Swagger/OpenAPI documentation
+├── migrations/             # Database migration files (SQL)
+├── i18n/                   # Localization files (translations, locales)
+├── frontend/               # Frontend application (Nuxt.js, UI code)
+├── config.yaml             # Main configuration file (YAML)
+├── docker-compose.yaml     # Docker Compose services definition
+├── Makefile                # Build and development commands
+├── .env.example            # Example environment variables
+├── go.mod                  # Go module definition
+├── go.sum                  # Go module checksums
+├── main.go                 # Main entry point (if not using cmd/)
+└── README.md               # Project documentation
 ```
 
 ## Getting Started
@@ -198,6 +222,18 @@ Once the application is running, you can access the Swagger documentation at:
 ```
 http://localhost:8080/swagger/
 ```
+
+## Routing & Common API
+
+- **Admin routes**: Register via `routes.NewAdminRouter().Register(app)`
+- **User routes**: Register via `routes.NewUserRouter().Register(app)`
+- **Common routes (health, auth, i18n, profile)** are automatically available in both admin and user APIs.
+- No need to pass config or service into the router, all dependencies are instantiated automatically inside.
+
+## Code Generator
+
+- See details at [`pkg/generator/README.md`](pkg/generator/README.md)
+- Supports code generation for repository, schema, datatable, service, and handler from a single Go model.
 
 ## Available Make Commands
 

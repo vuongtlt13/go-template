@@ -1,0 +1,118 @@
+package service
+
+import (
+	"context"
+	"errors"
+
+	"yourapp/internal/model"
+	"yourapp/internal/repository"
+	"yourapp/internal/schema"
+)
+
+type {{.Entity.ModelTextForm.ModelName}}Service struct {
+	repo *repository.{{.Entity.ModelTextForm.ModelName}}Repository
+}
+
+func New{{.Entity.ModelTextForm.ModelName}}Service(repo *repository.{{.Entity.ModelTextForm.ModelName}}Repository) *{{.Entity.ModelTextForm.ModelName}}Service {
+	return &{{.Entity.ModelTextForm.ModelName}}Service{
+		repo: repo,
+	}
+}
+
+// Create creates a new {{.Entity.ModelTextForm.ModelNameHuman}}
+func (s *{{.Entity.ModelTextForm.ModelName}}Service) Create(ctx context.Context, req *schema.Create{{.Entity.ModelTextForm.ModelName}}Request) (*model.{{.Entity.ModelTextForm.ModelName}}, error) {
+	// Validate request
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Convert request to model
+	{{.Entity.ModelTextForm.ModelNameSnakeCase}} := &model.{{.Entity.ModelTextForm.ModelName}}{
+		{{- range .Entity.Columns}}
+		{{- if and (ne .Name "ID") (ne .Name "CreatedAt") (ne .Name "UpdatedAt") (ne .Name "DeletedAt")}}
+		{{.Name}}: req.{{.Name}},
+		{{- end}}
+		{{- end}}
+	}
+
+	// Create in repository
+	if err := s.repo.Create(ctx, {{.Entity.ModelTextForm.ModelNameSnakeCase}}); err != nil {
+		return nil, err
+	}
+
+	return {{.Entity.ModelTextForm.ModelNameSnakeCase}}, nil
+}
+
+// GetByID retrieves a {{.Entity.ModelTextForm.ModelNameHuman}} by ID
+func (s *{{.Entity.ModelTextForm.ModelName}}Service) GetByID(ctx context.Context, id uint) (*model.{{.Entity.ModelTextForm.ModelName}}, error) {
+	{{.Entity.ModelTextForm.ModelNameSnakeCase}}, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if {{.Entity.ModelTextForm.ModelNameSnakeCase}} == nil {
+		return nil, errors.New("{{.Entity.ModelTextForm.ModelNameHuman}} not found")
+	}
+	return {{.Entity.ModelTextForm.ModelNameSnakeCase}}, nil
+}
+
+// Update updates a {{.Entity.ModelTextForm.ModelNameHuman}}
+func (s *{{.Entity.ModelTextForm.ModelName}}Service) Update(ctx context.Context, id uint, req *schema.Update{{.Entity.ModelTextForm.ModelName}}Request) (*model.{{.Entity.ModelTextForm.ModelName}}, error) {
+	// Validate request
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Get existing record
+	existing, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, errors.New("{{.Entity.ModelTextForm.ModelNameHuman}} not found")
+	}
+
+	// Update fields
+	{{- range .Entity.Columns}}
+	{{- if and (ne .Name "ID") (ne .Name "CreatedAt") (ne .Name "UpdatedAt") (ne .Name "DeletedAt")}}
+	if req.{{.Name}} != nil {
+		existing.{{.Name}} = *req.{{.Name}}
+	}
+	{{- end}}
+	{{- end}}
+
+	// Save to repository
+	if err := s.repo.Update(ctx, existing); err != nil {
+		return nil, err
+	}
+
+	return existing, nil
+}
+
+// Delete deletes a {{.Entity.ModelTextForm.ModelNameHuman}}
+func (s *{{.Entity.ModelTextForm.ModelName}}Service) Delete(ctx context.Context, id uint) error {
+	// Check if exists
+	existing, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return errors.New("{{.Entity.ModelTextForm.ModelNameHuman}} not found")
+	}
+
+	return s.repo.Delete(ctx, id)
+}
+
+// List retrieves a list of {{.Entity.ModelTextForm.ModelNameHumanPlural}}
+func (s *{{.Entity.ModelTextForm.ModelName}}Service) List(ctx context.Context, req *schema.List{{.Entity.ModelTextForm.ModelName}}Request) (*schema.List{{.Entity.ModelTextForm.ModelName}}Response, error) {
+	{{.Entity.ModelTextForm.ModelNameSnakeCasePlural}}, total, err := s.repo.List(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &schema.List{{.Entity.ModelTextForm.ModelName}}Response{
+		Data:  {{.Entity.ModelTextForm.ModelNameSnakeCasePlural}},
+		Total: total,
+		Page:  req.Page,
+		Limit: req.Limit,
+	}, nil
+} 

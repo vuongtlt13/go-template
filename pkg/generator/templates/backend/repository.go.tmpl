@@ -1,0 +1,71 @@
+package repository
+
+import (
+	"context"
+	"time"
+	"{{.ModuleName}}/internal/model"
+
+	"gorm.io/gorm"
+)
+
+type {{.Entity.Name}}Repository interface {
+	Create(ctx context.Context, obj *model.{{.Entity.Name}}) error
+	GetByID(ctx context.Context, id uint) (*model.{{.Entity.Name}}, error)
+	Update(ctx context.Context, obj *model.{{.Entity.Name}}) error
+	Delete(ctx context.Context, id uint) error
+	List(ctx context.Context) ([]*model.{{.Entity.Name}}, error)
+	// Thêm các method đặc thù nếu muốn
+}
+
+type {{.Entity.ModelTextForm.ModelNameCamelCase}}Repository struct {
+	db *gorm.DB
+}
+
+var (
+	{{.Entity.ModelTextForm.ModelNameCamelCase}}RepoInstance *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository
+)
+
+// New{{.Entity.Name}}Repository returns the singleton instance of {{.Entity.Name}}Repository
+func New{{.Entity.Name}}Repository(db *gorm.DB) {{.Entity.Name}}Repository {
+	if {{.Entity.ModelTextForm.ModelNameCamelCase}}RepoInstance == nil {
+		{{.Entity.ModelTextForm.ModelNameCamelCase}}RepoInstance = &{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository{
+			db: db,
+		}
+	}
+	return {{.Entity.ModelTextForm.ModelNameCamelCase}}RepoInstance
+}
+
+// Create creates a new {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+func (r *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository) Create(ctx context.Context, obj *model.{{.Entity.Name}}) error {
+	return r.db.WithContext(ctx).Create(obj).Error
+}
+
+// GetByID retrieves a {{.Entity.ModelTextForm.ModelNameSnakeCase}} by ID
+func (r *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository) GetByID(ctx context.Context, id uint) (*model.{{.Entity.Name}}, error) {
+	var obj model.{{.Entity.Name}}
+	err := r.db.WithContext(ctx).First(&obj, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+// Update updates a {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+func (r *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository) Update(ctx context.Context, obj *model.{{.Entity.Name}}) error {
+	return r.db.WithContext(ctx).Save(obj).Error
+}
+
+// Delete deletes a {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+func (r *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository) Delete(ctx context.Context, id uint) error {
+	return r.db.WithContext(ctx).Delete(&model.{{.Entity.Name}}{}, id).Error
+}
+
+// List retrieves all {{.Entity.ModelTextForm.ModelNameSnakeCasePlural}}
+func (r *{{.Entity.ModelTextForm.ModelNameCamelCase}}Repository) List(ctx context.Context) ([]*model.{{.Entity.Name}}, error) {
+	var objs []*model.{{.Entity.Name}}
+	err := r.db.WithContext(ctx).Find(&objs).Error
+	if err != nil {
+		return nil, err
+	}
+	return objs, nil
+} 

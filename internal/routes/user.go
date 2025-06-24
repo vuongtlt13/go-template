@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"yourapp/internal/api/admin"
 	"yourapp/internal/api/common"
 	"yourapp/internal/repository"
 	"yourapp/internal/service"
@@ -11,20 +10,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// Router represents admin routes
-type AdminRouter struct {
+// UserRouter represents user routes
+type UserRouter struct {
 	app *fiber.App
 }
 
-// NewRouter creates a new admin router
-func NewAdminRouter() *AdminRouter {
-	return &AdminRouter{
-		app: nil,
-	}
+// NewUserRouter creates a new user router
+func NewUserRouter() *UserRouter {
+	return &UserRouter{app: nil}
 }
 
-// Register registers all admin routes
-func (r *AdminRouter) Register(app *fiber.App) {
+// Register registers all user routes
+func (r *UserRouter) Register(app *fiber.App) {
 	r.app = app
 	api := r.app.Group("/api")
 
@@ -39,8 +36,4 @@ func (r *AdminRouter) Register(app *fiber.App) {
 	common.NewAuthRouter(cfg, authService).Register(api)
 	common.NewI18nRouter().Register(api)
 	common.NewProfileRouter().Register(api)
-
-	// User management
-	userRouter := admin.NewUserRouter()
-	userRouter.Register(api)
 }

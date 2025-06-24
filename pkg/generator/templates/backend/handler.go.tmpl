@@ -1,0 +1,166 @@
+package admin
+
+import (
+	"yourapp/internal/datatable"
+	internal_schema "yourapp/internal/schema"
+	base_dt "yourapp/pkg/datatable"
+	"yourapp/pkg/response"
+
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+)
+
+// {{.Entity.ModelTextForm.ModelName}}Handler handles {{.Entity.ModelTextForm.ModelNameSnakeCase}}-related requests
+type {{.Entity.ModelTextForm.ModelName}}Handler struct {
+	db *gorm.DB
+}
+
+// New{{.Entity.ModelTextForm.ModelName}}Handler creates a new {{.Entity.ModelTextForm.ModelNameSnakeCase}} handler
+func New{{.Entity.ModelTextForm.ModelName}}Handler(db *gorm.DB) *{{.Entity.ModelTextForm.ModelName}}Handler {
+	return &{{.Entity.ModelTextForm.ModelName}}Handler{db: db}
+}
+
+// Get{{.Entity.ModelTextForm.ModelNamePlural}} handles GET /crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/ - returns {{.Entity.ModelTextForm.ModelNameSnakeCase}} list with datatable support
+// @Summary Get {{.Entity.ModelTextForm.ModelNameSnakeCase}} list (datatable)
+// @Description Retrieve a list of {{.Entity.ModelTextForm.ModelNameSnakeCasePlural}} with datatable support (pagination, filtering, etc.)
+// @Tags admin-{{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Accept json
+// @Produce json
+// @Param q query string false "Keyword for searching"
+// @Param s query int false "Skip (offset)" default(0)
+// @Param ipp query int false "Limit (items per page)" default(25)
+// @Param sb[] query []string false "Sort columns (e.g. sb[]=email&sb[]=id)"
+// @Param sd[] query []string false "Sort directions (e.g. sd[]=asc&sd[]=desc)"
+// @Param action query string false "Action type (ajax, excel, csv, pdf)" default(ajax)
+// @Param ids query string false "Selected ids (JSON array or comma-separated)"
+// @Success 200 {object} schema.{{.Entity.ModelTextForm.ModelName}}DatatableResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Router /api/crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/ [get]
+func (h *{{.Entity.ModelTextForm.ModelName}}Handler) Get{{.Entity.ModelTextForm.ModelNamePlural}}(c *fiber.Ctx) error {
+	// Use the datatable helper to process the request
+	{{.Entity.ModelTextForm.ModelNameSnakeCase}}Datatable := datatable.New{{.Entity.ModelTextForm.ModelName}}DataTable(&base_dt.DataTaleConfig{
+		MaxLimit:    base_dt.DefaultMaxLimit,
+		SmartSearch: true,
+	})
+	return {{.Entity.ModelTextForm.ModelNameSnakeCase}}Datatable.Render(c, nil)
+}
+
+// Get{{.Entity.ModelTextForm.ModelName}} handles GET /crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/:id - returns a specific {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Summary Get {{.Entity.ModelTextForm.ModelNameSnakeCase}} details
+// @Description Retrieve detailed information of a {{.Entity.ModelTextForm.ModelNameSnakeCase}} by ID
+// @Tags admin-{{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Accept json
+// @Produce json
+// @Param id path int true "{{.Entity.ModelTextForm.ModelName}} ID"
+// @Success 200 {object} schema.{{.Entity.ModelTextForm.ModelName}}Response
+// @Failure 404 {object} common.ErrorResponse
+// @Router /api/crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/{id} [get]
+func (h *{{.Entity.ModelTextForm.ModelName}}Handler) Get{{.Entity.ModelTextForm.ModelName}}(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var {{.Entity.ModelTextForm.ModelNameSnakeCase}} internal_schema.{{.Entity.ModelTextForm.ModelName}}Info
+	if err := h.db.First(&{{.Entity.ModelTextForm.ModelNameSnakeCase}}, id).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusNotFound, "{{.Entity.ModelTextForm.ModelName}} not found", fiber.StatusNotFound)
+	}
+
+	return response.SuccessResponse(c, &{{.Entity.ModelTextForm.ModelNameSnakeCase}}, "ok")
+}
+
+// Create{{.Entity.ModelTextForm.ModelName}} handles POST /crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/ - creates a new {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Summary Create {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Description Create a new {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Tags admin-{{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Accept json
+// @Produce json
+// @Param {{.Entity.ModelTextForm.ModelNameSnakeCase}} body schema.Create{{.Entity.ModelTextForm.ModelName}}Request true "{{.Entity.ModelTextForm.ModelName}} data"
+// @Success 201 {object} schema.{{.Entity.ModelTextForm.ModelName}}Response
+// @Failure 400 {object} common.ErrorResponse
+// @Router /api/crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/ [post]
+func (h *{{.Entity.ModelTextForm.ModelName}}Handler) Create{{.Entity.ModelTextForm.ModelName}}(c *fiber.Ctx) error {
+	var req internal_schema.Create{{.Entity.ModelTextForm.ModelName}}Request
+	if err := c.BodyParser(&req); err != nil {
+		return response.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request body", fiber.StatusBadRequest)
+	}
+
+	// TODO: Add validation logic here
+
+	{{.Entity.ModelTextForm.ModelNameSnakeCase}} := &internal_schema.{{.Entity.ModelTextForm.ModelName}}Info{
+		{{- range .Entity.Columns}}
+		{{- if and (ne .Name "ID") (ne .Name "CreatedAt") (ne .Name "UpdatedAt") (ne .Name "DeletedAt")}}
+		{{.Name}}: req.{{.Name}},
+		{{- end}}
+		{{- end}}
+	}
+
+	if err := h.db.Create({{.Entity.ModelTextForm.ModelNameSnakeCase}}).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create {{.Entity.ModelTextForm.ModelNameSnakeCase}}", fiber.StatusInternalServerError)
+	}
+
+	return response.SuccessResponse(c, {{.Entity.ModelTextForm.ModelNameSnakeCase}}, "{{.Entity.ModelTextForm.ModelName}} created successfully")
+}
+
+// Update{{.Entity.ModelTextForm.ModelName}} handles PUT /crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/:id - updates a {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Summary Update {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Description Update an existing {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Tags admin-{{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Accept json
+// @Produce json
+// @Param id path int true "{{.Entity.ModelTextForm.ModelName}} ID"
+// @Param {{.Entity.ModelTextForm.ModelNameSnakeCase}} body schema.Update{{.Entity.ModelTextForm.ModelName}}Request true "{{.Entity.ModelTextForm.ModelName}} data"
+// @Success 200 {object} schema.{{.Entity.ModelTextForm.ModelName}}Response
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Router /api/crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/{id} [put]
+func (h *{{.Entity.ModelTextForm.ModelName}}Handler) Update{{.Entity.ModelTextForm.ModelName}}(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req internal_schema.Update{{.Entity.ModelTextForm.ModelName}}Request
+	if err := c.BodyParser(&req); err != nil {
+		return response.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request body", fiber.StatusBadRequest)
+	}
+
+	var {{.Entity.ModelTextForm.ModelNameSnakeCase}} internal_schema.{{.Entity.ModelTextForm.ModelName}}Info
+	if err := h.db.First(&{{.Entity.ModelTextForm.ModelNameSnakeCase}}, id).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusNotFound, "{{.Entity.ModelTextForm.ModelName}} not found", fiber.StatusNotFound)
+	}
+
+	// Update fields
+	{{- range .Entity.Columns}}
+	{{- if and (ne .Name "ID") (ne .Name "CreatedAt") (ne .Name "UpdatedAt") (ne .Name "DeletedAt")}}
+	if req.{{.Name}} != nil {
+		{{$.Entity.ModelTextForm.ModelNameSnakeCase}}.{{.Name}} = *req.{{.Name}}
+	}
+	{{- end}}
+	{{- end}}
+
+	if err := h.db.Save(&{{.Entity.ModelTextForm.ModelNameSnakeCase}}).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to update {{.Entity.ModelTextForm.ModelNameSnakeCase}}", fiber.StatusInternalServerError)
+	}
+
+	return response.SuccessResponse(c, &{{.Entity.ModelTextForm.ModelNameSnakeCase}}, "{{.Entity.ModelTextForm.ModelName}} updated successfully")
+}
+
+// Delete{{.Entity.ModelTextForm.ModelName}} handles DELETE /crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/:id - deletes a {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Summary Delete {{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Description Delete a {{.Entity.ModelTextForm.ModelNameSnakeCase}} by ID
+// @Tags admin-{{.Entity.ModelTextForm.ModelNameSnakeCase}}
+// @Accept json
+// @Produce json
+// @Param id path int true "{{.Entity.ModelTextForm.ModelName}} ID"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Router /api/crud/{{.Entity.ModelTextForm.ModelNameSnakeCase}}/{id} [delete]
+func (h *{{.Entity.ModelTextForm.ModelName}}Handler) Delete{{.Entity.ModelTextForm.ModelName}}(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var {{.Entity.ModelTextForm.ModelNameSnakeCase}} internal_schema.{{.Entity.ModelTextForm.ModelName}}Info
+	if err := h.db.First(&{{.Entity.ModelTextForm.ModelNameSnakeCase}}, id).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusNotFound, "{{.Entity.ModelTextForm.ModelName}} not found", fiber.StatusNotFound)
+	}
+
+	if err := h.db.Delete(&{{.Entity.ModelTextForm.ModelNameSnakeCase}}).Error; err != nil {
+		return response.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to delete {{.Entity.ModelTextForm.ModelNameSnakeCase}}", fiber.StatusInternalServerError)
+	}
+
+	return response.SuccessResponse(c, nil, "{{.Entity.ModelTextForm.ModelName}} deleted successfully")
+} 

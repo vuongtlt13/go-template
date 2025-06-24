@@ -1,6 +1,7 @@
 package common
 
 import (
+	"yourapp/internal/schema"
 	"yourapp/internal/service"
 	"yourapp/internal/validator"
 	"yourapp/pkg/config"
@@ -27,13 +28,13 @@ func NewAuthHandler(cfg *config.Config, service service.AuthService) *AuthHandle
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param credentials body LoginRequest true "Login credentials"
-// @Success 200 {object} LoginResponse
+// @Param credentials body schema.LoginRequest true "Login credentials"
+// @Success 200 {object} schema.LoginResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var req LoginRequest
+	var req schema.LoginRequest
 	if err := validator.ValidateRequest(c, &req); err != nil {
 		return err
 	}
@@ -47,7 +48,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return response.ErrorResponse(c, fiber.StatusUnauthorized, err.Error(), fiber.StatusUnauthorized)
 	}
 
-	return response.SuccessResponse(c, token, "ok")
+	return response.SuccessResponse(c, schema.LoginResponse{Token: token}, "ok")
 }
 
 // Register handles user registration
@@ -56,12 +57,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param user body RegisterRequest true "User registration data"
-// @Success 201 {object} RegisterResponse
+// @Param user body schema.RegisterRequest true "User registration data"
+// @Success 201 {object} schema.RegisterResponse
 // @Failure 400 {object} ErrorResponse
 // @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	var req RegisterRequest
+	var req schema.RegisterRequest
 	if err := validator.ValidateRequest(c, &req); err != nil {
 		return err
 	}
@@ -74,5 +75,5 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		return response.ErrorResponse(c, fiber.StatusBadRequest, err.Error(), fiber.StatusBadRequest)
 	}
 
-	return response.SuccessResponse(c, nil, "ok")
+	return response.SuccessResponse(c, schema.RegisterResponse{Message: "ok"}, "ok")
 }

@@ -3,6 +3,7 @@ package admin
 import (
 	"yourapp/internal/datatable"
 	internal_schema "yourapp/internal/schema"
+	base_dt "yourapp/pkg/datatable"
 	"yourapp/pkg/response"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,12 +26,22 @@ func NewUserHandler(db *gorm.DB) *UserHandler {
 // @Tags admin-user
 // @Accept json
 // @Produce json
+// @Param q query string false "Keyword for searching"
+// @Param s query int false "Skip (offset)" default(0)
+// @Param ipp query int false "Limit (items per page)" default(25)
+// @Param sb[] query []string false "Sort columns (e.g. sb[]=email&sb[]=id)"
+// @Param sd[] query []string false "Sort directions (e.g. sd[]=asc&sd[]=desc)"
+// @Param action query string false "Action type (ajax, excel, csv, pdf)" default(ajax)
+// @Param ids query string false "Selected ids (JSON array or comma-separated)"
 // @Success 200 {object} schema.UserDatatableResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Router /api/crud/user/ [get]
 func (h *UserHandler) GetUsers(c *fiber.Ctx) error {
 	// Use the datatable helper to process the request
-	userDatatable := datatable.NewUserDataTable(nil)
+	userDatatable := datatable.NewUserDataTable(&base_dt.DataTaleConfig{
+		MaxLimit:    base_dt.DefaultMaxLimit,
+		SmartSearch: true,
+	})
 	return userDatatable.Render(c, nil)
 	//res := []model.User{}
 	//return response.SuccessResponse(c, res, "ok")

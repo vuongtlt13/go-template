@@ -79,6 +79,7 @@ type GetColumnsFunc func() []*ColumnDefinition
 type ModifyDatatableFunc func()
 type Reducer func(rows []interface{}) []interface{}
 type BeforeProcessFunc func()
+type AfterProcessFunc func()
 
 // ProducerFunc represents a function that produces additional column data
 type ProducerFunc func(record interface{}) interface{}

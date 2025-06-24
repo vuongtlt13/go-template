@@ -1,0 +1,58 @@
+package schema
+
+// {{.Entity.Name}}Base represents shared properties in all create/update/read processes
+type {{.Entity.Name}}Base struct {
+{{- range .Entity.Columns }}
+	{{ .Name }} {{ .Type }} `json:"{{ .JsonName }}"{{if .Rules}} validate:"{{ joinRules .Rules }}"{{end}}{{if .DefaultValue}} default:"{{.DefaultValue}}"{{end}}`
+{{- end }}
+}
+
+// {{.Entity.Name}}InDBBase represents properties in DB
+type {{.Entity.Name}}InDBBase struct {
+	{{.Entity.Name}}Base
+	ID uint `json:"id" validate:"required,gt=0"`
+}
+
+// {{.Entity.Name}}CreateRequest represents properties to receive via API on creation
+type {{.Entity.Name}}CreateRequest struct {
+	{{.Entity.Name}}Base
+	Password string `json:"password" validate:"required,min=1,max=255"`
+}
+
+// {{.Entity.Name}}UpdateRequest represents properties to receive via API on update
+type {{.Entity.Name}}UpdateRequest struct {
+	{{.Entity.Name}}Base
+	Password *string `json:"password,omitempty" validate:"omitempty,min=1,max=255"`
+}
+
+// {{.Entity.Name}}Info represents additional properties to return via API
+type {{.Entity.Name}}Info struct {
+	{{.Entity.Name}}InDBBase
+	// Add more fields if needed
+}
+
+// {{.Entity.Name}}Response represents the response schema for info
+type {{.Entity.Name}}Response struct {
+	Data *{{.Entity.Name}}Info `json:"data,omitempty"`
+}
+
+// {{.Entity.Name}}Record represents a record in datatable
+type {{.Entity.Name}}Record struct {
+	{{.Entity.Name}}Info
+}
+
+// {{.Entity.Name}}DataTableResult represents the datatable result
+type {{.Entity.Name}}DataTableResult struct {
+	Items []{{.Entity.Name}}Record `json:"items"`
+	Total int64        `json:"total"`
+}
+
+// {{.Entity.Name}}DatatableResponse represents the response schema for datatable
+type {{.Entity.Name}}DatatableResponse struct {
+	Data {{.Entity.Name}}DataTableResult `json:"data"`
+}
+
+// {{.Entity.Name}}BatchRequest represents a batch request
+type {{.Entity.Name}}BatchRequest struct {
+	Items []int `json:"items" validate:"required"`
+} 

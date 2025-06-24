@@ -1,7 +1,10 @@
 package datatable
 
 import (
+	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 	"yourapp/pkg/response"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,12 +29,21 @@ type OverrideDataTable interface {
 	GetQuery() *gorm.DB
 	GetColumns() []*ColumnDefinition
 	ModifyDatatable()
-	Reducer(rows []interface{}) []interface{}
+	BeforeProcess()
+	AfterProcess()
 }
 
 type DataTaleConfig struct {
-	maxLimit    int
-	smartSearch bool
+	MaxLimit    int
+	SmartSearch bool
+}
+
+type BaseDataTaleAction struct {
+	GetQuery        func() *gorm.DB
+	GetColumns      func() []*ColumnDefinition
+	ModifyDatatable ModifyDatatableFunc
+	BeforeProcess   BeforeProcessFunc
+	AfterProcess    AfterProcessFunc
 }
 
 // BaseDataTable represents the base datatable with common logic and abstract methods
@@ -40,13 +52,12 @@ type BaseDataTable struct {
 	db                *gorm.DB
 	Query             *gorm.DB
 	Columns           []*ColumnDefinition
-	ReducerFunc       Reducer
-	BeforeProcessFunc BeforeProcessFunc
 	columnDefinitions map[string]*ColumnDefinition
 
 	// Advanced features
-	cfg    *DataTaleConfig
-	option *DataTaleOption
+	cfg      *DataTaleConfig
+	override OverrideDataTable
+	option   *DataTaleOption
 
 	additionalCols  map[string]ProducerFunc
 	editCols        map[string]ProducerFunc
@@ -61,15 +72,8 @@ type BaseDataTable struct {
 	filteredRecords int64
 }
 
-func NewBaseDataTable(cfg *DataTaleConfig, db *gorm.DB) BaseDataTable {
-	if cfg == nil {
-		cfg = &DataTaleConfig{
-			maxLimit:    DefaultMaxLimit,
-			smartSearch: true,
-		}
-	}
-
-	return BaseDataTable{
+func NewBaseDataTable(cfg *DataTaleConfig, db *gorm.DB) *BaseDataTable {
+	dt := &BaseDataTable{
 		db:                db,
 		fiberCtx:          nil,
 		Query:             nil,
@@ -83,11 +87,18 @@ func NewBaseDataTable(cfg *DataTaleConfig, db *gorm.DB) BaseDataTable {
 		includeIndex:      false,
 		indexColumnName:   "DT_RowIndex",
 	}
+	return dt
 }
 
 // GetDB returns the database connection
 func (bdt *BaseDataTable) GetDB() *gorm.DB {
 	return bdt.db
+}
+
+func (bdt *BaseDataTable) SetOverride(override OverrideDataTable) {
+	bdt.override = override
+	bdt.Columns = bdt.override.GetColumns()
+	bdt.override.ModifyDatatable()
 }
 
 // Render processes the datatable based on action type
@@ -102,7 +113,8 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) err
 	}
 
 	bdt.option = req
-	bdt.BeforeProcessFunc()
+	bdt.Query = bdt.override.GetQuery()
+	bdt.override.BeforeProcess()
 
 	// Call action based on request action
 	var result interface{}
@@ -124,6 +136,7 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) err
 	if err2 != nil {
 		return response.ErrorResponse(c, fiber.StatusBadRequest, err2.Error(), fiber.StatusBadRequest)
 	}
+	bdt.override.AfterProcess()
 
 	// Send response based on action type
 	switch req.Action {
@@ -139,76 +152,34 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) err
 	}
 }
 
-// GetSearchableColumns returns the searchable columns
-// Override this method in child classes
-func (bdt *BaseDataTable) GetSearchableColumns() []string {
-	return []string{}
+func (bdt *BaseDataTable) getSearchableColumnNames() []*ColumnDefinition {
+	var result []*ColumnDefinition
+	for _, col := range bdt.Columns {
+		if col.Searchable {
+			result = append(result, col)
+		}
+	}
+	return result
 }
 
-// GetOrderableColumns returns the orderable columns
-// Override this method in child classes
-func (bdt *BaseDataTable) GetOrderableColumns() []string {
-	return []string{}
+func (bdt *BaseDataTable) getOrderableColumnNames() []*ColumnDefinition {
+	var result []*ColumnDefinition
+	for _, col := range bdt.Columns {
+		if col.Orderable && col.ColumnAlias != "" {
+			result = append(result, col)
+		}
+	}
+	return result
 }
 
-// GetRelations returns the relations to preload
-// Override this method in child classes
-func (bdt *BaseDataTable) GetRelations() []string {
-	return []string{}
-}
-
-// GetSelects returns the select fields
-// Override this method in child classes
-func (bdt *BaseDataTable) GetSelects() []string {
-	return []string{}
-}
-
-// GetConditions returns the where conditions
-// Override this method in child classes
-func (bdt *BaseDataTable) GetConditions() map[string]interface{} {
-	return make(map[string]interface{})
-}
-
-// GetAdditionalColumns returns additional columns configuration
-// Override this method in child classes
-func (bdt *BaseDataTable) GetAdditionalColumns() map[string]ProducerFunc {
-	return make(map[string]ProducerFunc)
-}
-
-// GetEditColumns returns edit columns configuration
-// Override this method in child classes
-func (bdt *BaseDataTable) GetEditColumns() map[string]ProducerFunc {
-	return make(map[string]ProducerFunc)
-}
-
-// GetFilterRules returns custom filter rules
-// Override this method in child classes
-func (bdt *BaseDataTable) GetFilterRules() map[string]FilterFunc {
-	return make(map[string]FilterFunc)
-}
-
-// ShouldIncludeIndex returns whether to include index column
-// Override this method in child classes
-func (bdt *BaseDataTable) ShouldIncludeIndex() bool {
-	return false
-}
-
-// GetIndexColumnName returns the index column name
-// Override this method in child classes
-func (bdt *BaseDataTable) GetIndexColumnName() string {
-	return "DT_RowIndex"
-}
-
-// GetMaxLimit returns the maximum limit
-// Override this method in child classes
-func (bdt *BaseDataTable) GetMaxLimit() int {
-	return 300
-}
-
-// ShouldUseSmartSearch returns whether to use smart search
-// Override this method in child classes
-func (bdt *BaseDataTable) ShouldUseSmartSearch() bool {
-	return true
+func (bdt *BaseDataTable) getFilterColumns() []*ColumnDefinition {
+	var result []*ColumnDefinition
+	for _, col := range bdt.Columns {
+		if col.ColumnAlias != "" {
+			result = append(result, col)
+		}
+	}
+	return result
 }
 
 func (bdt *BaseDataTable) countTotal(baseQuery *gorm.DB) (int64, error) {
@@ -221,6 +192,128 @@ func (bdt *BaseDataTable) countTotal(baseQuery *gorm.DB) (int64, error) {
 	return result, nil
 }
 
+func (bdt *BaseDataTable) filterSelectedIDs(ids []int) *gorm.DB {
+	return bdt.Query.Where("id IN ?", ids)
+}
+
+func (bdt *BaseDataTable) extractFilterConfig(filterColumn *ColumnDefinition) (filterRule string, filterValue interface{}) {
+	filterRule = ""
+	filterValue = nil
+
+	// Lấy filter config từ query param theo alias
+	filterConfig := bdt.fiberCtx.Query(filterColumn.ColumnAlias, "")
+	if filterConfig != "" && strings.HasPrefix(filterConfig, "::") {
+		// Dùng regex để tách rule và value
+		re := regexp.MustCompile(`::([^(]+)\((.*)\)`)
+		matches := re.FindStringSubmatch(filterConfig)
+		if len(matches) == 3 {
+			filterRule = matches[1]
+			// Parse value từ json
+			if err := json.Unmarshal([]byte(matches[2]), &filterValue); err != nil {
+				// Có thể log lỗi nếu muốn
+			}
+		}
+	}
+
+	return filterRule, filterValue
+}
+
+func (bdt *BaseDataTable) applyFilterRules() *gorm.DB {
+	filterColumns := bdt.getFilterColumns()
+	db := bdt.Query
+
+	for _, fc := range filterColumns {
+		rule, value := bdt.extractFilterConfig(fc)
+		ruleStr := fmt.Sprintf("%v", rule) // Ép về string để so sánh
+
+		colName := fc.Data
+
+		switch ruleStr {
+		case string(FilterRuleEqual):
+			db = db.Where(fmt.Sprintf("%s = ?", colName), value)
+		case string(FilterRuleLessThan):
+			db = db.Where(fmt.Sprintf("%s < ?", colName), value)
+		case string(FilterRuleLessThanEqual):
+			db = db.Where(fmt.Sprintf("%s <= ?", colName), value)
+		case string(FilterRuleGreaterThan):
+			db = db.Where(fmt.Sprintf("%s > ?", colName), value)
+		case string(FilterRuleGreaterThanEqual):
+			db = db.Where(fmt.Sprintf("%s >= ?", colName), value)
+		case string(FilterRuleBetween):
+			if vals, ok := value.([]interface{}); ok && len(vals) == 2 {
+				db = db.Where(fmt.Sprintf("%s BETWEEN ? AND ?", colName), vals[0], vals[1])
+			}
+		case string(FilterRuleIn):
+			db = db.Where(fmt.Sprintf("%s IN ?", colName), value)
+		case string(FilterRuleNotIn):
+			db = db.Where(fmt.Sprintf("%s NOT IN ?", colName), value)
+		default:
+			// Có thể log hoặc bỏ qua
+		}
+	}
+
+	return db
+}
+
+func (bdt *BaseDataTable) doSearch(keywords []string) *gorm.DB {
+	// Loại bỏ trùng lặp
+	unique := make(map[string]struct{})
+	var filtered []string
+	for _, k := range keywords {
+		if k == "" {
+			continue
+		}
+		if _, ok := unique[k]; !ok {
+			unique[k] = struct{}{}
+			filtered = append(filtered, k)
+		}
+	}
+	keywords = filtered
+
+	searchableCols := bdt.getSearchableColumnNames() // Trả về []string tên cột
+	if len(searchableCols) == 0 || len(keywords) == 0 {
+		return bdt.Query
+	}
+
+	// Xây dựng điều kiện OR cho từng keyword trên từng cột
+	db := bdt.Query
+	for _, keyword := range keywords {
+		conds := make([]string, 0)
+		args := make([]interface{}, 0)
+		for _, col := range searchableCols {
+			conds = append(conds, fmt.Sprintf("%s ILIKE ?", col.Data))
+			args = append(args, "%"+fmt.Sprintf("%s", keyword)+"%")
+		}
+		// Gộp các điều kiện OR cho mỗi keyword
+		db = db.Where("("+strings.Join(conds, " OR ")+")", args...)
+	}
+
+	// Nếu có filter rules custom, gọi tiếp hàm applyFilterRules nếu bạn có
+	bdt.applyFilterRules()
+
+	return db
+}
+
+func (bdt *BaseDataTable) doSmartSearch() *gorm.DB {
+	keywords := strings.Fields(bdt.option.Keyword)
+	return bdt.doSearch(keywords)
+}
+
+func (bdt *BaseDataTable) applyFilterRecords() *gorm.DB {
+	// Nếu có selected_ids, filter theo selected_ids
+	if len(bdt.option.SelectedIDs) > 0 {
+		return bdt.filterSelectedIDs(bdt.option.SelectedIDs)
+	}
+
+	// Nếu smart_search, thực hiện smart search
+	if bdt.cfg.SmartSearch {
+		return bdt.doSmartSearch()
+	}
+
+	// Ngược lại, search theo keyword thường
+	return bdt.doSearch([]string{bdt.option.Keyword})
+}
+
 func (bdt *BaseDataTable) prepareQuery(paginate bool) error {
 	if !bdt.prepared {
 		totalRecords, err := bdt.countTotal(bdt.Query)
@@ -230,7 +323,7 @@ func (bdt *BaseDataTable) prepareQuery(paginate bool) error {
 		bdt.totalRecords = totalRecords
 
 		if bdt.totalRecords > 0 {
-			//bdt.applyFilterRecords()
+			bdt.applyFilterRecords()
 			//bdt.applyOrder()
 			if paginate {
 				//bdt.applyPaginate()

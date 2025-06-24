@@ -10,15 +10,15 @@ import (
 // User represents a system user
 type User struct {
 	ID        uint64         `gorm:"primarykey" json:"id"`
-	Email     string         `gorm:"size:100;not null;uniqueIndex" json:"email"`
-	Password  string         `gorm:"size:100;not null" json:"-"`
-	FirstName string         `gorm:"size:50" json:"firstName"`
-	LastName  string         `gorm:"size:50" json:"lastName"`
-	IsActive  bool           `gorm:"default:true" json:"isActive"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Email     string         `gorm:"size:255;not null;uniqueIndex" json:"email"`
+	Password  string         `gorm:"size:255;not null" json:"-"`
+	FullName  string         `gorm:"size:255" json:"full_name"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	IsAdmin   bool           `gorm:"default:false" json:"is_admin"`
 	Roles     []Role         `gorm:"many2many:user_roles;" json:"roles,omitempty"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // HashPassword hashes the user's password

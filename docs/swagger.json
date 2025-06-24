@@ -17,6 +17,61 @@
                     "admin-user"
                 ],
                 "summary": "Get user list (datatable)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Keyword for searching",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Skip (offset)",
+                        "name": "s",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 25,
+                        "description": "Limit (items per page)",
+                        "name": "ipp",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Sort columns (e.g. sb[]=email\u0026sb[]=id)",
+                        "name": "sb[]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Sort directions (e.g. sd[]=asc\u0026sd[]=desc)",
+                        "name": "sd[]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "ajax",
+                        "description": "Action type (ajax, excel, csv, pdf)",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Selected ids (JSON array or comma-separated)",
+                        "name": "ids",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

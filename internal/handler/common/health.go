@@ -12,6 +12,18 @@ func NewHealthHandler() *HealthHandler {
 	return &HealthHandler{}
 }
 
+// Health check endpoint
+// @Summary Health check
+// @Description Check if the service is healthy
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /api/health [get]
+func (h *HealthHandler) Health(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"status": "ok"})
+}
+
 // HealthCheck handles health check requests
 // @Summary Health check
 // @Description Check if the service is healthy

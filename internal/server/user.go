@@ -3,53 +3,34 @@ package server
 import (
 	"context"
 	"fmt"
-	"yourapp/pkg/database"
-
-	"github.com/gofiber/swagger"
-
-	"yourapp/internal/handler/common"
-	"yourapp/internal/repository"
-	"yourapp/internal/service"
-	"yourapp/pkg/auth"
+	"yourapp/internal/routes"
 	"yourapp/pkg/config"
 	"yourapp/pkg/logger"
 	"yourapp/pkg/server"
+
+	"github.com/gofiber/swagger"
 )
 
 // User represents the user HTTP server
-type User struct {
+type UserServer struct {
 	*server.BaseServer
-	logger      logger.Logger
-	authService service.AuthService
+	logger logger.Logger
 }
 
 // NewUserServer creates a new user server instance
-func NewUserServer(cfg *config.Config, logger logger.Logger) *User {
-	db := database.GetDatabase()
-
-	// Create repositories
-	userRepo := repository.NewUserRepository(db) // TODO: Pass DB connection
-
-	// Create JWT manager
-	jwtManager := auth.GetJWTManager()
-
-	// Create services
-	authService := service.NewAuthService(db, userRepo, jwtManager) // TODO: Pass DB connection
-
-	return &User{
-		BaseServer:  server.NewBaseServer(cfg, "User"),
-		logger:      logger,
-		authService: authService,
+func NewUserServer(cfg *config.Config, logger logger.Logger) *UserServer {
+	return &UserServer{
+		BaseServer: server.NewBaseServer(cfg, "User"),
+		logger:     logger,
 	}
 }
 
 // Start starts the server
-func (s *User) Start() error {
+func (s *UserServer) Start() error {
 	app := s.GetApp()
 
-	// Initialize and register common routes
-	commonRouter := common.NewRouter(app, s.GetConfig(), s.authService)
-	commonRouter.Register()
+	// Register user routes (bao gồm cả common routes)
+	routes.NewUserRouter().Register(app)
 
 	// Swagger documentation
 	app.Get("/swagger/*", swagger.HandlerDefault)
@@ -61,6 +42,6 @@ func (s *User) Start() error {
 }
 
 // Shutdown gracefully shuts down the server
-func (s *User) Shutdown(ctx context.Context) error {
+func (s *UserServer) Shutdown(ctx context.Context) error {
 	return s.GetApp().ShutdownWithContext(ctx)
 }

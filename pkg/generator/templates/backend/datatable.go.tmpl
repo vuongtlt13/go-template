@@ -1,0 +1,49 @@
+package datatable
+
+import (
+	"{{.ModuleName}}/internal/model"
+	"{{.ModuleName}}/pkg/database"
+	"{{.ModuleName}}/pkg/datatable"
+
+	"gorm.io/gorm"
+)
+
+type {{.Entity.Name}}DataTable struct {
+	*datatable.BaseDataTable
+}
+
+func New{{.Entity.Name}}DataTable(cfg *datatable.DataTaleConfig) *{{.Entity.Name}}DataTable {
+	dt := &{{.Entity.Name}}DataTable{
+		BaseDataTable: datatable.NewBaseDataTable(
+			cfg,
+			database.GetDatabase(),
+		),
+	}
+	dt.SetOverride(dt)
+	return dt
+}
+
+// GetQuery returns the main query for the datatable
+func (udt *{{.Entity.Name}}DataTable) GetQuery() *gorm.DB {
+	return udt.GetDB().Model(&model.{{.Entity.Name}}{})
+}
+
+// GetColumns returns the column definitions
+func (udt *{{.Entity.Name}}DataTable) GetColumns() []*datatable.ColumnDefinition {
+	return []*datatable.ColumnDefinition{
+		{{- range .Columns }}
+		{Data: "{{ .JsonName }}", Searchable: true, Orderable: true, Exportable: true, Printable: true},
+		{{- end }}
+	}
+}
+
+// ModifyDatatable is used to modify the datatable
+func (udt *{{.Entity.Name}}DataTable) ModifyDatatable() {}
+
+// AfterProcess
+func (udt *{{.Entity.Name}}DataTable) AfterProcess() {}
+
+// BeforeProcess
+func (udt *{{.Entity.Name}}DataTable) BeforeProcess() {
+	udt.Result = []model.{{.Entity.Name}}{}
+} 
