@@ -7,8 +7,6 @@ import (
 	"yourapp/pkg/config"
 	"yourapp/pkg/logger"
 	"yourapp/pkg/server"
-
-	"github.com/gofiber/swagger"
 )
 
 // User represents the user HTTP server
@@ -32,8 +30,9 @@ func (s *UserServer) Start() error {
 	// Register user routes (bao gồm cả common routes)
 	routes.NewUserRouter().Register(app)
 
-	// Swagger documentation
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	// Auto-fiber OpenAPI docs and Swagger UI
+	app.ServeDocs("/docs")
+	app.ServeSwaggerUI("/swagger", "/docs")
 
 	// Start server
 	addr := fmt.Sprintf(":%d", s.GetConfig().Server.Port)
@@ -43,5 +42,5 @@ func (s *UserServer) Start() error {
 
 // Shutdown gracefully shuts down the server
 func (s *UserServer) Shutdown(ctx context.Context) error {
-	return s.GetApp().ShutdownWithContext(ctx)
+	return s.BaseServer.Shutdown(ctx)
 }

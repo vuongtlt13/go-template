@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofiber/swagger"
-
-	_ "yourapp/docs"
 	"yourapp/internal/routes"
 	"yourapp/pkg/config"
 	"yourapp/pkg/logger"
@@ -35,8 +32,9 @@ func (s *AdminServer) Start() error {
 	adminRouter := routes.NewAdminRouter()
 	adminRouter.Register(app)
 
-	// Swagger documentation
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	// Auto-fiber OpenAPI docs and Swagger UI
+	app.ServeDocs("/docs")
+	app.ServeSwaggerUI("/swagger", "/docs")
 
 	// Start server
 	addr := fmt.Sprintf(":%d", s.GetConfig().Server.Port)
@@ -46,5 +44,5 @@ func (s *AdminServer) Start() error {
 
 // Shutdown gracefully shuts down the server
 func (s *AdminServer) Shutdown(ctx context.Context) error {
-	return s.GetApp().ShutdownWithContext(ctx)
+	return s.BaseServer.Shutdown(ctx)
 }

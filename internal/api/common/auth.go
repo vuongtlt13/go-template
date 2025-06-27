@@ -2,10 +2,11 @@ package common
 
 import (
 	"yourapp/internal/handler/common"
+	"yourapp/internal/schema"
 	"yourapp/internal/service"
 	"yourapp/pkg/config"
 
-	"github.com/gofiber/fiber/v2"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 type AuthRouter struct {
@@ -17,7 +18,20 @@ func NewAuthRouter(cfg *config.Config, authService service.AuthService) *AuthRou
 	return &AuthRouter{cfg: cfg, authService: authService}
 }
 
-func (r *AuthRouter) Register(rootRouter fiber.Router) {
-	handler := common.NewAuthHandler(r.cfg, r.authService)
-	rootRouter.Post("/auth/login", handler.Login)
+func (r *AuthRouter) Register(rootRouter *autofiber.AutoFiberGroup) {
+	authHandler := common.NewAuthHandler(r.cfg, r.authService)
+
+	rootRouter.Post("/auth/login", authHandler.Login,
+		autofiber.WithDescription("Authenticate user and return JWT token"),
+		autofiber.WithTags("auth"),
+		autofiber.WithRequestSchema(schema.LoginRequest{}),
+		autofiber.WithResponseSchema(schema.APIResponse{}),
+	)
+
+	rootRouter.Post("/auth/register", authHandler.Register,
+		autofiber.WithDescription("Register new user account"),
+		autofiber.WithTags("auth"),
+		autofiber.WithRequestSchema(schema.RegisterRequest{}),
+		autofiber.WithResponseSchema(schema.APIResponse{}),
+	)
 }

@@ -1,5 +1,24 @@
 package schema
 
+// UserIDParam represents path parameter for user ID
+type UserIDParam struct {
+	ID uint `parse:"path:id" validate:"required,gt=0" description:"User ID"`
+}
+
+// PaginationQuery represents common pagination query parameters
+type PaginationQuery struct {
+	Page   int    `parse:"query:page" validate:"omitempty,min=1" default:"1" description:"Page number"`
+	Limit  int    `parse:"query:limit" validate:"omitempty,min=1,max=100" default:"10" description:"Number of items per page"`
+	Search string `parse:"query:search" validate:"omitempty,max=255" description:"Search term"`
+}
+
+// UserQuery represents query parameters for user endpoints
+type UserQuery struct {
+	PaginationQuery
+	IsActive *bool `parse:"query:isActive" validate:"omitempty" description:"Filter by active status"`
+	IsAdmin  *bool `parse:"query:isAdmin" validate:"omitempty" description:"Filter by admin status"`
+}
+
 // UserBase represents shared properties in all create/update/read processes
 type UserBase struct {
 	Email    string `json:"email" validate:"required,email"`

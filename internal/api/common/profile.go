@@ -1,17 +1,21 @@
 package common
 
 import (
-	"yourapp/pkg/response"
+	"yourapp/internal/handler/common"
+	"yourapp/internal/schema"
 
-	"github.com/gofiber/fiber/v2"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 type ProfileRouter struct{}
 
 func NewProfileRouter() *ProfileRouter { return &ProfileRouter{} }
 
-func (r *ProfileRouter) Register(rootRouter fiber.Router) {
-	rootRouter.Get("/profile", func(c *fiber.Ctx) error {
-		return response.SuccessResponse(c, fiber.Map{"message": "profile stub"}, "profile stub")
-	})
+func (r *ProfileRouter) Register(rootRouter *autofiber.AutoFiberGroup) {
+	handler := common.NewProfileHandler()
+	rootRouter.Get("/profile", handler.GetProfile,
+		autofiber.WithDescription("Get user profile information"),
+		autofiber.WithTags("profile"),
+		autofiber.WithResponseSchema(schema.APIResponse{}),
+	)
 }

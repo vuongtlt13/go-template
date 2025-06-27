@@ -12,11 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 // BaseServer defines common functionality for all servers
 type BaseServer struct {
-	app *fiber.App
+	app *autofiber.AutoFiber
 	cfg *config.Config
 }
 
@@ -26,8 +27,7 @@ func NewBaseServer(cfg *config.Config, serverType string) *BaseServer {
 		cfg: cfg,
 	}
 
-	// Create Fiber app with config
-	s.app = fiber.New(fiber.Config{
+	s.app = autofiber.New(fiber.Config{
 		AppName:      cfg.Server.App.Name + " " + serverType,
 		ReadTimeout:  cfg.Server.App.ReadTimeout,
 		WriteTimeout: cfg.Server.App.WriteTimeout,
@@ -57,17 +57,15 @@ func NewBaseServer(cfg *config.Config, serverType string) *BaseServer {
 		Max:        cfg.Server.App.RateLimit.Max,
 		Expiration: cfg.Server.App.RateLimit.Expiration,
 		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"message": "Too many requests. Please try again later.",
-			})
+			return response.ErrorResponse(c, fiber.StatusTooManyRequests, "Too many requests. Please try again later.", fiber.StatusTooManyRequests)
 		},
 	}))
 
 	return s
 }
 
-// GetApp returns the Fiber app instance
-func (s *BaseServer) GetApp() *fiber.App {
+// GetApp returns the AutoFiber app instance
+func (s *BaseServer) GetApp() *autofiber.AutoFiber {
 	return s.app
 }
 
@@ -79,5 +77,5 @@ func (s *BaseServer) GetConfig() *config.Config {
 // Shutdown gracefully shuts down the server
 func (s *BaseServer) Shutdown(ctx context.Context) error {
 	log.Println("Server shutting down...")
-	return s.app.ShutdownWithContext(ctx)
+	return s.app.App.ShutdownWithContext(ctx)
 }

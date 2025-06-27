@@ -7,12 +7,12 @@ import (
 	"yourapp/pkg/config"
 	"yourapp/pkg/database"
 
-	"github.com/gofiber/fiber/v2"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 // UserRouter represents user routes
 type UserRouter struct {
-	app *fiber.App
+	app *autofiber.AutoFiber
 }
 
 // NewUserRouter creates a new user router
@@ -21,7 +21,7 @@ func NewUserRouter() *UserRouter {
 }
 
 // Register registers all user routes
-func (r *UserRouter) Register(app *fiber.App) {
+func (r *UserRouter) Register(app *autofiber.AutoFiber) {
 	r.app = app
 	api := r.app.Group("/api")
 

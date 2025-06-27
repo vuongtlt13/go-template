@@ -8,12 +8,12 @@ import (
 	"yourapp/pkg/config"
 	"yourapp/pkg/database"
 
-	"github.com/gofiber/fiber/v2"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 // Router represents admin routes
 type AdminRouter struct {
-	app *fiber.App
+	app *autofiber.AutoFiber
 }
 
 // NewRouter creates a new admin router
@@ -24,7 +24,7 @@ func NewAdminRouter() *AdminRouter {
 }
 
 // Register registers all admin routes
-func (r *AdminRouter) Register(app *fiber.App) {
+func (r *AdminRouter) Register(app *autofiber.AutoFiber) {
 	r.app = app
 	api := r.app.Group("/api")
 
@@ -35,10 +35,10 @@ func (r *AdminRouter) Register(app *fiber.App) {
 	authService := service.NewAuthService(db, repo, nil) // truyền jwtManager nếu cần
 
 	// Register common routes
-	common.NewHealthRouter().Register(api)
 	common.NewAuthRouter(cfg, authService).Register(api)
 	common.NewI18nRouter().Register(api)
 	common.NewProfileRouter().Register(api)
+	common.NewHealthRouter().Register(api)
 
 	// User management
 	userRouter := admin.NewUserRouter()

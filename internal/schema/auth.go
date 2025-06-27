@@ -2,22 +2,29 @@ package schema
 
 // LoginRequest represents login credentials
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=1,max=255"`
+	Email    string `parse:"body:email,required" validate:"required,email" description:"User email address"`
+	Password string `parse:"body:password,required" validate:"required,min=8" description:"User password"`
 }
 
 // RegisterRequest represents registration data
 type RegisterRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=1,max=255"`
+	Email    string `parse:"body:email,required" validate:"required,email" description:"User email address"`
+	Password string `parse:"body:password,required" validate:"required,min=8" description:"User password"`
 }
 
-// LoginResponse represents login response with JWT token
-type LoginResponse struct {
-	Token string `json:"token"`
+// LoginData represents login response data
+type LoginData struct {
+	Token string `json:"token" description:"JWT authentication token"`
 }
 
-// RegisterResponse represents registration response
-type RegisterResponse struct {
-	Message string `json:"message"`
+// RegisterData represents registration response data
+type RegisterData struct {
+	Message string `json:"message" description:"Registration confirmation message"`
+}
+
+// Standard API Response wrapper
+type APIResponse struct {
+	Success bool        `json:"success" description:"Request success status"`
+	Data    interface{} `json:"data,omitempty" description:"Response data"`
+	Message string      `json:"message,omitempty" description:"Response message"`
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
+	autofiber "github.com/vuongtlt13/auto-fiber"
 )
 
 // Mock service.AuthService
@@ -26,7 +27,7 @@ func (m *mockAuthService) Register(ctx context.Context, cred service.Credential)
 }
 
 func TestAuthHandler_Login(t *testing.T) {
-	app := fiber.New()
+	app := autofiber.New(fiber.Config{})
 	cfg := &config.Config{}
 	mockService := &mockAuthService{}
 	handler := common.NewAuthHandler(cfg, mockService)
