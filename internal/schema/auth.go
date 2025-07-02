@@ -21,10 +21,3 @@ type LoginData struct {
 type RegisterData struct {
 	Message string `json:"message" description:"Registration confirmation message"`
 }
-
-// Standard API Response wrapper
-type APIResponse struct {
-	Success bool        `json:"success" description:"Request success status"`
-	Data    interface{} `json:"data,omitempty" description:"Response data"`
-	Message string      `json:"message,omitempty" description:"Response message"`
-}

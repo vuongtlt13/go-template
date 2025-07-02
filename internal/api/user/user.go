@@ -2,7 +2,6 @@ package user
 
 import (
 	"yourapp/internal/handler/user"
-	"yourapp/internal/schema"
 
 	autofiber "github.com/vuongtlt13/auto-fiber"
 )
@@ -27,7 +26,7 @@ func (r *UserRouter) Register(rootRouter *autofiber.AutoFiberGroup) {
 	rootRouter.Get("/user/profile", userHandler.GetProfile,
 		autofiber.WithDescription("Get current user profile"),
 		autofiber.WithTags("user", "profile"),
-		autofiber.WithResponseSchema(schema.APIResponse{}),
+		autofiber.WithResponseSchema(response.APIResponse[map[string]interface{}]{}),
 	)
 
 	// Thêm các route user khác nếu cần

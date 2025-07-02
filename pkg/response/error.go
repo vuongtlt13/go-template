@@ -4,16 +4,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type errorResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
+// To use HTTP errors, import from "pkg/httperror"
 
-func ErrorResponse(c *fiber.Ctx, status int, message string, errorCode int) error {
-	return c.Status(status).JSON(errorResponse{
-		Success: false,
-		Message: message,
-		Code:    errorCode,
+func ErrorResponse(c *fiber.Ctx, status int, message string, errorCode int, stack ...string) error {
+	var stackVal string
+	if len(stack) > 0 {
+		stackVal = stack[0]
+	}
+	return c.Status(status).JSON(APIResponse[interface{}]{
+		Success:   false,
+		Data:      nil,
+		Message:   message,
+		ErrorCode: errorCode,
+		Stack:     stackVal,
 	})
 }

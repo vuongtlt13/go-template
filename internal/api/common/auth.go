@@ -25,13 +25,13 @@ func (r *AuthRouter) Register(rootRouter *autofiber.AutoFiberGroup) {
 		autofiber.WithDescription("Authenticate user and return JWT token"),
 		autofiber.WithTags("auth"),
 		autofiber.WithRequestSchema(schema.LoginRequest{}),
-		autofiber.WithResponseSchema(schema.APIResponse{}),
+		autofiber.WithResponseSchema(response.APIResponse[schema.LoginData]{}),
 	)
 
 	rootRouter.Post("/auth/register", authHandler.Register,
 		autofiber.WithDescription("Register new user account"),
 		autofiber.WithTags("auth"),
 		autofiber.WithRequestSchema(schema.RegisterRequest{}),
-		autofiber.WithResponseSchema(schema.APIResponse{}),
+		autofiber.WithResponseSchema(response.APIResponse[schema.RegisterData]{}),
 	)
 }

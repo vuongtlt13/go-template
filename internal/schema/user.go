@@ -12,8 +12,8 @@ type PaginationQuery struct {
 	Search string `parse:"query:search" validate:"omitempty,max=255" description:"Search term"`
 }
 
-// UserQuery represents query parameters for user endpoints
-type UserQuery struct {
+// GetUsersRequest represents query parameters for user endpoints
+type GetUsersRequest struct {
 	PaginationQuery
 	IsActive *bool `parse:"query:isActive" validate:"omitempty" description:"Filter by active status"`
 	IsAdmin  *bool `parse:"query:isAdmin" validate:"omitempty" description:"Filter by admin status"`
@@ -57,11 +57,6 @@ type UserInfo struct {
 	UserRoles []string `json:"userRoles,omitempty"`
 }
 
-// UserResponse represents the response schema for user info
-type UserResponse struct {
-	Data *UserInfo `json:"data,omitempty"`
-}
-
 // UserRecord represents a user record in datatable
 type UserRecord struct {
 	UserInfo
@@ -71,11 +66,6 @@ type UserRecord struct {
 type UserDataTableResult struct {
 	Items []UserRecord `json:"items"`
 	Total int64        `json:"total"`
-}
-
-// UserDatatableResponse represents the response schema for datatable
-type UserDatatableResponse struct {
-	Data UserDataTableResult `json:"data"`
 }
 
 // UserBatchRequest represents a batch request

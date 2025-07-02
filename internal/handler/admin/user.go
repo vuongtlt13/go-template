@@ -2,8 +2,8 @@ package admin
 
 import (
 	"yourapp/internal/datatable"
-	internal_schema "yourapp/internal/schema"
-	base_dt "yourapp/pkg/datatable"
+	"yourapp/internal/schema"
+	basedt "yourapp/pkg/datatable"
 	"yourapp/pkg/response"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,15 +36,18 @@ func NewUserHandler(db *gorm.DB) *UserHandler {
 // @Success 200 {object} schema.UserDatatableResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Router /api/crud/user/ [get]
-func (h *UserHandler) GetUsers(c *fiber.Ctx) error {
+func (h *UserHandler) GetUsers(c *fiber.Ctx, req *schema.GetUsersRequest) (*response.APIResponse[*schema.UserDataTableResult], error) {
 	// Use the datatable helper to process the request
-	userDatatable := datatable.NewUserDataTable(&base_dt.DataTaleConfig{
-		MaxLimit:    base_dt.DefaultMaxLimit,
+	userDatatable := datatable.NewUserDataTable(&basedt.DataTaleConfig{
+		MaxLimit:    basedt.DefaultMaxLimit,
 		SmartSearch: true,
 	})
-	return userDatatable.Render(c, nil)
-	//res := []model.User{}
-	//return response.SuccessResponse(c, res, "ok")
+	resp, err := userDatatable.Render(c, nil)
+	return &response.APIResponse[*schema.UserDataTableResult]{
+		Success: false,
+		Data:    resp.(*schema.UserDataTableResult),
+		Message: "ok",
+	}, err
 }
 
 // GetUser handles GET /crud/user/:id - returns a specific user
@@ -60,7 +63,7 @@ func (h *UserHandler) GetUsers(c *fiber.Ctx) error {
 func (h *UserHandler) GetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	var user internal_schema.UserInfo
+	var user schema.UserInfo
 	if err := h.db.First(&user, id).Error; err != nil {
 		return response.ErrorResponse(c, fiber.StatusNotFound, "User not found", fiber.StatusNotFound)
 	}

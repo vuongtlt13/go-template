@@ -4,6 +4,7 @@ import (
 	"yourapp/internal/handler/admin"
 	"yourapp/internal/schema"
 	"yourapp/pkg/database"
+	"yourapp/pkg/response"
 
 	autofiber "github.com/vuongtlt13/auto-fiber"
 )
@@ -28,35 +29,35 @@ func (r *UserRouter) Register(rootRouter *autofiber.AutoFiberGroup) {
 	rootRouter.Get("/crud/user", userHandler.GetUsers,
 		autofiber.WithDescription("Get all users with pagination"),
 		autofiber.WithTags("admin", "user"),
-		autofiber.WithRequestSchema(schema.UserQuery{}),
-		autofiber.WithResponseSchema(schema.APIResponse{}),
+		autofiber.WithRequestSchema(schema.GetUsersRequest{}),
+		autofiber.WithResponseSchema(response.APIResponse[schema.UserDataTableResult]{}),
 	)
 
 	rootRouter.Get("/crud/user/:id", userHandler.GetUser,
 		autofiber.WithDescription("Get user by ID"),
 		autofiber.WithTags("admin", "user"),
 		autofiber.WithRequestSchema(schema.UserIDParam{}),
-		autofiber.WithResponseSchema(schema.APIResponse{}),
+		autofiber.WithResponseSchema(response.APIResponse[schema.UserInfo]{}),
 	)
 
 	//rootRouter.Post("/crud/user", userHandler.CreateUser,
 	//	autofiber.WithDescription("Create new user"),
 	//	autofiber.WithTags("admin", "user"),
 	//	autofiber.WithRequestSchema(schema.CreateUserRequest{}),
-	//	autofiber.WithResponseSchema(schema.APIResponse{}),
+	//	autofiber.WithResponseSchema(response.APIResponse{}),
 	//)
 
 	//rootRouter.Put("/crud/user/:id", userHandler.UpdateUser,
 	//	autofiber.WithDescription("Update user by ID"),
 	//	autofiber.WithTags("admin", "user"),
 	//	autofiber.WithRequestSchema(schema.UpdateUserRequest{}),
-	//	autofiber.WithResponseSchema(schema.APIResponse{}),
+	//	autofiber.WithResponseSchema(response.APIResponse{}),
 	//)
 
 	//rootRouter.Delete("/crud/user/:id", userHandler.DeleteUser,
 	//	autofiber.WithDescription("Delete user by ID"),
 	//	autofiber.WithTags("admin", "user"),
 	//	autofiber.WithRequestSchema(schema.UserIDParam{}),
-	//	autofiber.WithResponseSchema(schema.APIResponse{}),
+	//	autofiber.WithResponseSchema(response.APIResponse{}),
 	//)
 }

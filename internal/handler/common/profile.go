@@ -18,6 +18,10 @@ func NewProfileHandler() *ProfileHandler {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Router /api/profile [get]
-func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"message": "profile handler stub"})
+func (h *ProfileHandler) GetProfile(c *fiber.Ctx) (*response.APIResponse[map[string]interface{}], error) {
+	return &response.APIResponse[map[string]interface{}]{
+		Success: true,
+		Data:    map[string]interface{}{"message": "profile handler stub"},
+		Message: "Profile fetched successfully",
+	}, nil
 }

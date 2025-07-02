@@ -10,6 +10,6 @@ func NewUserHandler() *UserHandler {
 	return &UserHandler{}
 }
 
-func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"message": "user profile stub"})
+func (h *UserHandler) GetProfile(c *fiber.Ctx) (interface{}, error) {
+	return fiber.Map{"message": "user profile stub"}, nil
 }

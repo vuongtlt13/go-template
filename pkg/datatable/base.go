@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"yourapp/pkg/response"
+	"yourapp/pkg/httperror"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -103,13 +103,13 @@ func (bdt *BaseDataTable) SetOverride(override OverrideDataTable) {
 
 // Render processes the datatable based on action type
 // Similar to FastAPI's render method
-func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) error {
+func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) (interface{}, error) {
 	bdt.fiberCtx = c
 
 	// Parse request
 	req, err := ParseDataTableOptionFromFiberContext(c)
 	if err != nil {
-		return response.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request format", fiber.StatusBadRequest)
+		return nil, httperror.NewBadRequest("Invalid request format")
 	}
 
 	bdt.option = req
@@ -134,7 +134,7 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) err
 	}
 
 	if err2 != nil {
-		return response.ErrorResponse(c, fiber.StatusBadRequest, err2.Error(), fiber.StatusBadRequest)
+		return nil, httperror.NewBadRequest(err2.Error())
 	}
 	bdt.override.AfterProcess()
 
@@ -142,13 +142,14 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) err
 	switch req.Action {
 	case ActionExcel, ActionCSV, ActionPDF:
 		// For export actions, send file response
-		return bdt.sendFileResponse(c, result, req.Action)
+		//return bdt.sendFileResponse(c, result, req.Action)
+		return nil, nil
 	default:
 		// For AJAX, send JSON response
 		if resp, ok := result.(*Result); ok {
-			return response.SuccessResponse(c, resp, "ok")
+			return resp, nil
 		}
-		return response.ErrorResponse(c, fiber.StatusBadRequest, "Invalid response type", fiber.StatusBadRequest)
+		return nil, httperror.NewBadRequest("Invalid response type")
 	}
 }
 

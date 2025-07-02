@@ -33,8 +33,8 @@ func (s *AdminServer) Start() error {
 	adminRouter.Register(app)
 
 	// Auto-fiber OpenAPI docs and Swagger UI
-	app.ServeDocs("/docs")
-	app.ServeSwaggerUI("/swagger", "/docs")
+	app.ServeDocs("/openapi")
+	app.ServeSwaggerUI("/docs", "/openapi")
 
 	// Start server
 	addr := fmt.Sprintf(":%d", s.GetConfig().Server.Port)

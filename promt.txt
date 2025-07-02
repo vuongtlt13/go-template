@@ -1,0 +1,81 @@
+BẮT BUỘC:
+1. Đọc kỹ file `README.md` và `go.mod` trước khi thực hiện bất kỳ thay đổi nào để hiểu rõ kiến trúc tổng thể, stack công nghệ, và các quy ước của dự án.
+2. Đọc kỹ doc của dự án tại thư mục `docs`
+
+---
+
+Tóm tắt dự án:
+
+### 1. Kiến trúc & Công nghệ
+- Backend:  
+  - Ngôn ngữ: Go, theo Clean Architecture.
+  - Framework HTTP: [auto-fiber](https://github.com/auto-fiber/auto-fiber) (mở rộng từ Fiber, hỗ trợ auto-doc, schema, validation...).
+  - ORM: GORM.
+  - Database: PostgreSQL.
+  - Xác thực: JWT.
+  - Phân quyền: RBAC.
+  - Tích hợp code generator cho các tầng (repository, handler, schema, service...).
+  - **Tất cả response API phải dùng chuẩn định dạng từ `pkg/response`.**
+
+- Frontend:  
+  - Nuxt 3 (Vue 3), Tailwind CSS, Pinia.
+  - Tách biệt rõ ràng các thành phần (components, composables, services, stores...).
+
+---
+
+### 2. Cấu trúc thư mục chính
+- `internal/api/`: Định nghĩa router, handler, schema cho từng module (admin, user, common...).
+- `internal/model/`: Định nghĩa các model cho GORM.
+- `internal/service/`: Xử lý logic nghiệp vụ.
+- `internal/repository/`: Tầng truy xuất dữ liệu.
+- `pkg/response/`: Chuẩn hóa response trả về cho API.
+- `pkg/server/`: Khởi tạo server, middleware, shutdown logic.
+- `frontend/`: Source code Nuxt 3.
+
+---
+
+### 3. Quy ước & Best Practices
+- Router:  
+  - Đăng ký route qua auto-fiber, sử dụng đầy đủ các method như `WithDescription`, `WithTags`, `WithRequestSchema`, `WithResponseSchema`.
+  - Dùng `WithRequestSchema` cho cả GET nếu có query params.
+  - Response schema phải cụ thể, không dùng generic.
+- Handler:  
+  - Nhận request, parse & validate qua auto-fiber.
+  - Trả về response qua hàm chuẩn trong `pkg/response`.
+- Schema:  
+  - Định nghĩa rõ ràng cho từng endpoint (request/response).
+  - Đảm bảo đồng bộ giữa schema, handler, router.
+- Middleware:  
+  - Đăng ký qua auto-fiber, tích hợp vào server trong `pkg/server/base.go`.
+- Mã nguồn:  
+  - Tách biệt rõ ràng các tầng, dễ mở rộng, dễ test.
+  - Sử dụng Fiber HTTP status code constants.
+
+---
+
+### 4. Các điểm cần lưu ý khi mở rộng/migrate
+- Khi thêm route mới:  
+  - Định nghĩa schema request/response.
+  - Đăng ký route qua auto-fiber, khai báo schema, tags, description.
+  - Đảm bảo handler trả về response đúng chuẩn.
+- Khi sửa đổi response:  
+  - Update schema, handler, và router tương ứng.
+- Khi thêm middleware:  
+  - Đăng ký trong `pkg/server/base.go` qua auto-fiber.
+
+---
+
+### 5. Sử dụng thư viện bên ngoài
+- Project sử dụng autofiber tại https://pkg.go.dev/github.com/vuongtlt13/auto-fiber. Luôn đọc file docs của autofiber tại https://github.com/vuongtlt13/auto-fiber/tree/master/docs và ví dụ tại https://github.com/vuongtlt13/auto-fiber/blob/master/example/main.go để hiểu cách dùng trước khi thay đổi
+
+Tóm lại:  
+Dự án backend Go, frontend Nuxt 3, dùng auto-fiber cho API, mọi response phải chuẩn hóa, schema phải rõ ràng, code tách lớp, dễ mở rộng, dễ test.
+
+---
+
+Lưu ý:  
+Luôn đọc lại `README.md` và `go.mod` nếu có bất kỳ thay đổi lớn nào về kiến trúc hoặc stack.
+
+---
+
+Sau khi đọc xong hãy chuẩn bị để thực hiện những thay đổi tiếp theo

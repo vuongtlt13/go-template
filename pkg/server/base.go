@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"yourapp/pkg/config"
+	"yourapp/pkg/httperror"
 	"yourapp/pkg/middleware"
 	"yourapp/pkg/response"
 
@@ -32,7 +33,7 @@ func NewBaseServer(cfg *config.Config, serverType string) *BaseServer {
 		ReadTimeout:  cfg.Server.App.ReadTimeout,
 		WriteTimeout: cfg.Server.App.WriteTimeout,
 		IdleTimeout:  cfg.Server.App.IdleTimeout,
-		ErrorHandler: response.HandlerError,
+		ErrorHandler: httperror.HandlerError,
 	})
 
 	// Add middleware
