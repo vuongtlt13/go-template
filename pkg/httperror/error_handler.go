@@ -2,6 +2,7 @@ package httperror
 
 import (
 	"errors"
+	"reflect"
 	"yourapp/pkg/logger"
 	"yourapp/pkg/response"
 
@@ -30,7 +31,8 @@ func HandlerError(c *fiber.Ctx, err error) error {
 			fiberError.Code,
 		)
 	}
-	_logger.Error("error %v", err)
+
+	_logger.Errorf("error name=%s detail: %v", reflect.TypeOf(err), err.Error())
 	return response.ErrorResponse(
 		c,
 		fiber.StatusInternalServerError,

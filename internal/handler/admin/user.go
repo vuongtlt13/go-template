@@ -42,10 +42,10 @@ func (h *UserHandler) GetUsers(c *fiber.Ctx, req *schema.GetUsersRequest) (*resp
 		MaxLimit:    basedt.DefaultMaxLimit,
 		SmartSearch: true,
 	})
-	resp, err := userDatatable.Render(c, nil)
+	resp, err := userDatatable.Render(c, req, nil)
 	return &response.APIResponse[*schema.UserDataTableResult]{
 		Success: false,
-		Data:    resp.(*schema.UserDataTableResult),
+		Data:    resp,
 		Message: "ok",
 	}, err
 }
@@ -60,13 +60,15 @@ func (h *UserHandler) GetUsers(c *fiber.Ctx, req *schema.GetUsersRequest) (*resp
 // @Success 200 {object} schema.UserResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Router /api/crud/user/{id} [get]
-func (h *UserHandler) GetUser(c *fiber.Ctx) error {
-	id := c.Params("id")
-
+func (h *UserHandler) GetUser(c *fiber.Ctx, req *schema.UserIDParam) (*response.APIResponse[schema.UserInfo], error) {
 	var user schema.UserInfo
-	if err := h.db.First(&user, id).Error; err != nil {
-		return response.ErrorResponse(c, fiber.StatusNotFound, "User not found", fiber.StatusNotFound)
+	if err := h.db.First(&user, req.ID).Error; err != nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
 
-	return response.SuccessResponse(c, &user, "ok")
+	return &response.APIResponse[schema.UserInfo]{
+		Success: true,
+		Data:    user,
+		Message: "User found successfully",
+	}, nil
 }

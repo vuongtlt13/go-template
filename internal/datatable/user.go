@@ -9,12 +9,12 @@ import (
 )
 
 type UserDataTable struct {
-	*datatable.BaseDataTable
+	*datatable.BaseDataTable[model.User]
 }
 
 func NewUserDataTable(cfg *datatable.DataTaleConfig) *UserDataTable {
 	dt := &UserDataTable{
-		BaseDataTable: datatable.NewBaseDataTable(
+		BaseDataTable: datatable.NewBaseDataTable[model.User](
 			cfg,
 			database.GetDatabase(),
 		),

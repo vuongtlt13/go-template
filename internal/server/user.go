@@ -36,7 +36,7 @@ func (s *UserServer) Start() error {
 
 	// Start server
 	addr := fmt.Sprintf(":%d", s.GetConfig().Server.Port)
-	s.logger.Info("Starting user server", "addr", addr)
+	s.logger.Infof("Starting user server at %s", addr)
 	return app.Listen(addr)
 }
 

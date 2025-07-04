@@ -1,6 +1,8 @@
 package common
 
 import (
+	"yourapp/pkg/response"
+
 	"github.com/gofiber/fiber/v2"
 )
 

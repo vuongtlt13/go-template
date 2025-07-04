@@ -17,7 +17,7 @@ const DefaultLimit = 25
 // DataTable defines the interface for all datatables
 // All datatable implementations should satisfy this interface
 type DataTable interface {
-	Render(c *fiber.Ctx, extra map[string]interface{}) error
+	Render(c *fiber.Ctx, reqParams interface{}, extra map[string]interface{}) error
 
 	AddColumn(columnName string, producer ProducerFunc) DataTable
 	EditColumn(columnName string, producer ProducerFunc) DataTable
@@ -47,7 +47,7 @@ type BaseDataTaleAction struct {
 }
 
 // BaseDataTable represents the base datatable with common logic and abstract methods
-type BaseDataTable struct {
+type BaseDataTable[T any] struct {
 	fiberCtx          *fiber.Ctx
 	db                *gorm.DB
 	Query             *gorm.DB
@@ -67,13 +67,13 @@ type BaseDataTable struct {
 
 	// State
 	prepared        bool
-	Result          any
+	Result          []T
 	totalRecords    int64
 	filteredRecords int64
 }
 
-func NewBaseDataTable(cfg *DataTaleConfig, db *gorm.DB) *BaseDataTable {
-	dt := &BaseDataTable{
+func NewBaseDataTable[T any](cfg *DataTaleConfig, db *gorm.DB) *BaseDataTable[T] {
+	dt := &BaseDataTable[T]{
 		db:                db,
 		fiberCtx:          nil,
 		Query:             nil,
@@ -91,11 +91,11 @@ func NewBaseDataTable(cfg *DataTaleConfig, db *gorm.DB) *BaseDataTable {
 }
 
 // GetDB returns the database connection
-func (bdt *BaseDataTable) GetDB() *gorm.DB {
+func (bdt *BaseDataTable[T]) GetDB() *gorm.DB {
 	return bdt.db
 }
 
-func (bdt *BaseDataTable) SetOverride(override OverrideDataTable) {
+func (bdt *BaseDataTable[T]) SetOverride(override OverrideDataTable) {
 	bdt.override = override
 	bdt.Columns = bdt.override.GetColumns()
 	bdt.override.ModifyDatatable()
@@ -103,11 +103,11 @@ func (bdt *BaseDataTable) SetOverride(override OverrideDataTable) {
 
 // Render processes the datatable based on action type
 // Similar to FastAPI's render method
-func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) (interface{}, error) {
+func (bdt *BaseDataTable[T]) Render(c *fiber.Ctx, reqParams IDatatableRequest, extra map[string]interface{}) (*Result[interface{}], error) {
 	bdt.fiberCtx = c
 
 	// Parse request
-	req, err := ParseDataTableOptionFromFiberContext(c)
+	req, err := ParseDataTableOptionFromFiberContext(c, reqParams)
 	if err != nil {
 		return nil, httperror.NewBadRequest("Invalid request format")
 	}
@@ -138,22 +138,13 @@ func (bdt *BaseDataTable) Render(c *fiber.Ctx, extra map[string]interface{}) (in
 	}
 	bdt.override.AfterProcess()
 
-	// Send response based on action type
-	switch req.Action {
-	case ActionExcel, ActionCSV, ActionPDF:
-		// For export actions, send file response
-		//return bdt.sendFileResponse(c, result, req.Action)
-		return nil, nil
-	default:
-		// For AJAX, send JSON response
-		if resp, ok := result.(*Result); ok {
-			return resp, nil
-		}
-		return nil, httperror.NewBadRequest("Invalid response type")
+	if resp, ok := result.(*Result[interface{}]); ok {
+		return resp, nil
 	}
+	return nil, httperror.NewBadRequest("Invalid response type")
 }
 
-func (bdt *BaseDataTable) getSearchableColumnNames() []*ColumnDefinition {
+func (bdt *BaseDataTable[T]) getSearchableColumnNames() []*ColumnDefinition {
 	var result []*ColumnDefinition
 	for _, col := range bdt.Columns {
 		if col.Searchable {
@@ -163,7 +154,7 @@ func (bdt *BaseDataTable) getSearchableColumnNames() []*ColumnDefinition {
 	return result
 }
 
-func (bdt *BaseDataTable) getOrderableColumnNames() []*ColumnDefinition {
+func (bdt *BaseDataTable[T]) getOrderableColumnNames() []*ColumnDefinition {
 	var result []*ColumnDefinition
 	for _, col := range bdt.Columns {
 		if col.Orderable && col.ColumnAlias != "" {
@@ -173,7 +164,7 @@ func (bdt *BaseDataTable) getOrderableColumnNames() []*ColumnDefinition {
 	return result
 }
 
-func (bdt *BaseDataTable) getFilterColumns() []*ColumnDefinition {
+func (bdt *BaseDataTable[T]) getFilterColumns() []*ColumnDefinition {
 	var result []*ColumnDefinition
 	for _, col := range bdt.Columns {
 		if col.ColumnAlias != "" {
@@ -183,7 +174,7 @@ func (bdt *BaseDataTable) getFilterColumns() []*ColumnDefinition {
 	return result
 }
 
-func (bdt *BaseDataTable) countTotal(baseQuery *gorm.DB) (int64, error) {
+func (bdt *BaseDataTable[T]) countTotal(baseQuery *gorm.DB) (int64, error) {
 	var result int64
 	tx := bdt.db.Table("(?) as base_tbl", baseQuery).Count(&result)
 	if tx.Error != nil {
@@ -193,11 +184,11 @@ func (bdt *BaseDataTable) countTotal(baseQuery *gorm.DB) (int64, error) {
 	return result, nil
 }
 
-func (bdt *BaseDataTable) filterSelectedIDs(ids []int) *gorm.DB {
+func (bdt *BaseDataTable[T]) filterSelectedIDs(ids []int) *gorm.DB {
 	return bdt.Query.Where("id IN ?", ids)
 }
 
-func (bdt *BaseDataTable) extractFilterConfig(filterColumn *ColumnDefinition) (filterRule string, filterValue interface{}) {
+func (bdt *BaseDataTable[T]) extractFilterConfig(filterColumn *ColumnDefinition) (filterRule string, filterValue interface{}) {
 	filterRule = ""
 	filterValue = nil
 
@@ -219,7 +210,7 @@ func (bdt *BaseDataTable) extractFilterConfig(filterColumn *ColumnDefinition) (f
 	return filterRule, filterValue
 }
 
-func (bdt *BaseDataTable) applyFilterRules() *gorm.DB {
+func (bdt *BaseDataTable[T]) applyFilterRules() *gorm.DB {
 	filterColumns := bdt.getFilterColumns()
 	db := bdt.Query
 
@@ -256,7 +247,7 @@ func (bdt *BaseDataTable) applyFilterRules() *gorm.DB {
 	return db
 }
 
-func (bdt *BaseDataTable) doSearch(keywords []string) *gorm.DB {
+func (bdt *BaseDataTable[T]) doSearch(keywords []string) *gorm.DB {
 	// Loại bỏ trùng lặp
 	unique := make(map[string]struct{})
 	var filtered []string
@@ -295,12 +286,12 @@ func (bdt *BaseDataTable) doSearch(keywords []string) *gorm.DB {
 	return db
 }
 
-func (bdt *BaseDataTable) doSmartSearch() *gorm.DB {
+func (bdt *BaseDataTable[T]) doSmartSearch() *gorm.DB {
 	keywords := strings.Fields(bdt.option.Keyword)
 	return bdt.doSearch(keywords)
 }
 
-func (bdt *BaseDataTable) applyFilterRecords() *gorm.DB {
+func (bdt *BaseDataTable[T]) applyFilterRecords() *gorm.DB {
 	// Nếu có selected_ids, filter theo selected_ids
 	if len(bdt.option.SelectedIDs) > 0 {
 		return bdt.filterSelectedIDs(bdt.option.SelectedIDs)
@@ -315,7 +306,7 @@ func (bdt *BaseDataTable) applyFilterRecords() *gorm.DB {
 	return bdt.doSearch([]string{bdt.option.Keyword})
 }
 
-func (bdt *BaseDataTable) prepareQuery(paginate bool) error {
+func (bdt *BaseDataTable[T]) prepareQuery(paginate bool) error {
 	if !bdt.prepared {
 		totalRecords, err := bdt.countTotal(bdt.Query)
 		if err != nil {
@@ -336,14 +327,14 @@ func (bdt *BaseDataTable) prepareQuery(paginate bool) error {
 	return nil
 }
 
-func (bdt *BaseDataTable) getResultQuery() error {
+func (bdt *BaseDataTable[T]) getResultQuery() error {
 	filteredRecords, err := bdt.countTotal(bdt.Query)
 	if err != nil {
 		return fmt.Errorf("error when counting record %v", err)
 	}
 	bdt.filteredRecords = filteredRecords
 
-	tx := bdt.Query.Find(&bdt.Result)
+	tx := bdt.Query.Find(bdt.Result)
 	if tx.Error != nil {
 		return fmt.Errorf("error when finding record %v", err)
 	}
@@ -351,7 +342,7 @@ func (bdt *BaseDataTable) getResultQuery() error {
 }
 
 // ProcessWithBase processes the datatable with base configuration
-func (bdt *BaseDataTable) ProcessWithBase(paginate bool) (any, error) {
+func (bdt *BaseDataTable[T]) ProcessWithBase(paginate bool) ([]T, error) {
 	err := bdt.prepareQuery(paginate)
 	if err != nil {
 		return nil, fmt.Errorf("error when preparing query %v", err)
@@ -365,7 +356,7 @@ func (bdt *BaseDataTable) ProcessWithBase(paginate bool) (any, error) {
 }
 
 // callAJAX handles AJAX action
-func (bdt *BaseDataTable) callAJAX(extra map[string]interface{}) (*Result, error) {
+func (bdt *BaseDataTable[T]) callAJAX(extra map[string]interface{}) (*Result[T], error) {
 	result, err := bdt.ProcessWithBase(true)
 	if err != nil {
 		return nil, fmt.Errorf("error when proccessing ajax %v", err)
@@ -375,7 +366,7 @@ func (bdt *BaseDataTable) callAJAX(extra map[string]interface{}) (*Result, error
 		extra = map[string]interface{}{}
 	}
 
-	return &Result{
+	return &Result[T]{
 		TotalRecords:    bdt.totalRecords,
 		FilteredRecords: bdt.filteredRecords,
 		Items:           result,
@@ -384,7 +375,7 @@ func (bdt *BaseDataTable) callAJAX(extra map[string]interface{}) (*Result, error
 }
 
 // callExcel handles Excel export action
-func (bdt *BaseDataTable) callExcel() (any, error) {
+func (bdt *BaseDataTable[T]) callExcel() (any, error) {
 	result, err := bdt.ProcessWithBase(false)
 	if err != nil {
 		return nil, fmt.Errorf("error when exporting excel %v", err)
@@ -394,17 +385,17 @@ func (bdt *BaseDataTable) callExcel() (any, error) {
 }
 
 // callCSV handles CSV export action
-func (bdt *BaseDataTable) callCSV() (interface{}, error) {
+func (bdt *BaseDataTable[T]) callCSV() (interface{}, error) {
 	return nil, fmt.Errorf("export csv is not supported")
 }
 
 // callPDF handles PDF export action
-func (bdt *BaseDataTable) callPDF() (interface{}, error) {
+func (bdt *BaseDataTable[T]) callPDF() (interface{}, error) {
 	return nil, fmt.Errorf("export pdf is not supported")
 }
 
 // sendFileResponse sends file response for export actions
-func (bdt *BaseDataTable) sendFileResponse(c *fiber.Ctx, result interface{}, action Action) error {
+func (bdt *BaseDataTable[T]) sendFileResponse(c *fiber.Ctx, result interface{}, action Action) error {
 	// TODO: Implement file response sending
 	// This would set appropriate headers and send file data
 	switch action {

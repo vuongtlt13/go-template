@@ -3,6 +3,7 @@ package common
 import (
 	"yourapp/internal/handler/common"
 	"yourapp/internal/schema"
+	"yourapp/pkg/response"
 
 	autofiber "github.com/vuongtlt13/auto-fiber"
 )

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -12,10 +13,15 @@ import (
 // Logger represents the logger interface
 type Logger interface {
 	Info(msg string, args ...interface{})
+	Infof(format string, args ...interface{})
 	Warn(msg string, args ...interface{})
+	Warnf(format string, args ...interface{})
 	Error(msg string, args ...interface{})
+	Errorf(format string, args ...interface{})
 	Fatal(msg string, args ...interface{})
+	Fatalf(format string, args ...interface{})
 	Debug(msg string, args ...interface{})
+	Debugf(format string, args ...interface{})
 	With(args ...interface{}) *zap.Logger
 	Sync() error
 }
@@ -151,4 +157,24 @@ func Error(err error) zapcore.Field {
 
 func Duration(key string, val time.Duration) zapcore.Field {
 	return zap.Duration(key, val)
+}
+
+func (l *AppLogger) Infof(format string, args ...interface{}) {
+	l.zapLogger.Info(fmt.Sprintf(format, args...))
+}
+
+func (l *AppLogger) Warnf(format string, args ...interface{}) {
+	l.zapLogger.Warn(fmt.Sprintf(format, args...))
+}
+
+func (l *AppLogger) Errorf(format string, args ...interface{}) {
+	l.zapLogger.Error(fmt.Sprintf(format, args...))
+}
+
+func (l *AppLogger) Fatalf(format string, args ...interface{}) {
+	l.zapLogger.Fatal(fmt.Sprintf(format, args...))
+}
+
+func (l *AppLogger) Debugf(format string, args ...interface{}) {
+	l.zapLogger.Debug(fmt.Sprintf(format, args...))
 }

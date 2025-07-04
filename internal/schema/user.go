@@ -1,22 +1,21 @@
 package schema
 
+import "yourapp/pkg/datatable"
+
 // UserIDParam represents path parameter for user ID
 type UserIDParam struct {
 	ID uint `parse:"path:id" validate:"required,gt=0" description:"User ID"`
 }
 
-// PaginationQuery represents common pagination query parameters
-type PaginationQuery struct {
-	Page   int    `parse:"query:page" validate:"omitempty,min=1" default:"1" description:"Page number"`
-	Limit  int    `parse:"query:limit" validate:"omitempty,min=1,max=100" default:"10" description:"Number of items per page"`
-	Search string `parse:"query:search" validate:"omitempty,max=255" description:"Search term"`
-}
-
 // GetUsersRequest represents query parameters for user endpoints
 type GetUsersRequest struct {
-	PaginationQuery
+	*datatable.RequestParams
 	IsActive *bool `parse:"query:isActive" validate:"omitempty" description:"Filter by active status"`
 	IsAdmin  *bool `parse:"query:isAdmin" validate:"omitempty" description:"Filter by admin status"`
+}
+
+func (r *GetUsersRequest) GetRequestParams() *datatable.RequestParams {
+	return r.RequestParams
 }
 
 // UserBase represents shared properties in all create/update/read processes
@@ -63,10 +62,7 @@ type UserRecord struct {
 }
 
 // UserDataTableResult represents the datatable result
-type UserDataTableResult struct {
-	Items []UserRecord `json:"items"`
-	Total int64        `json:"total"`
-}
+type UserDataTableResult = datatable.Result[interface{}]
 
 // UserBatchRequest represents a batch request
 type UserBatchRequest struct {

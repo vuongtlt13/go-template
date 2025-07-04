@@ -38,7 +38,7 @@ func (s *AdminServer) Start() error {
 
 	// Start server
 	addr := fmt.Sprintf(":%d", s.GetConfig().Server.Port)
-	s.logger.Info("Starting admin server", "addr", addr)
+	s.logger.Infof("Starting admin server at %s", addr)
 	return app.Listen(addr)
 }
 

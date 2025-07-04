@@ -39,6 +39,8 @@ type DataTaleOption struct {
 	Others map[string]interface{}
 
 	SelectedIDs []int `json:"selected_ids,omitempty"`
+
+	RawRequest interface{} `json:"raw_request,omitempty"`
 }
 
 // Column represents column information
@@ -52,10 +54,10 @@ type Column struct {
 }
 
 // Result represents the datatable response
-type Result struct {
+type Result[T any] struct {
 	TotalRecords    int64                  `json:"totalRecords"`
 	FilteredRecords int64                  `json:"filteredRecords"`
-	Items           any                    `json:"items,omitempty"`
+	Items           []T                    `json:"items,omitempty"`
 	Others          map[string]interface{} `json:"others,omitempty"`
 }
 
