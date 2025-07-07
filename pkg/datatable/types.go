@@ -53,8 +53,16 @@ type Column struct {
 	Printable  bool   `json:"printable"`
 }
 
-// Result represents the datatable response
-type Result[T any] struct {
+// Result represents the datatable result after query
+type Result struct {
+	TotalRecords    int64                  `json:"totalRecords"`
+	FilteredRecords int64                  `json:"filteredRecords"`
+	Items           any                    `json:"items,omitempty"`
+	Others          map[string]interface{} `json:"others,omitempty"`
+}
+
+// GenericResult represents the datatable response
+type GenericResult[T any] struct {
 	TotalRecords    int64                  `json:"totalRecords"`
 	FilteredRecords int64                  `json:"filteredRecords"`
 	Items           []T                    `json:"items,omitempty"`

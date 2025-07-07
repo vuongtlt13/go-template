@@ -42,12 +42,15 @@ func (h *UserHandler) GetUsers(c *fiber.Ctx, req *schema.GetUsersRequest) (*resp
 		MaxLimit:    basedt.DefaultMaxLimit,
 		SmartSearch: true,
 	})
-	resp, err := userDatatable.Render(c, req, nil)
+	result := schema.UserDataTableResult{}
+	if err := userDatatable.Render(c, req, nil, &result); err != nil {
+		return nil, err
+	}
 	return &response.APIResponse[*schema.UserDataTableResult]{
 		Success: false,
-		Data:    resp,
+		Data:    &result,
 		Message: "ok",
-	}, err
+	}, nil
 }
 
 // GetUser handles GET /crud/user/:id - returns a specific user

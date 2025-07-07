@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"yourapp/internal/model"
 	"yourapp/pkg/httperror"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +18,7 @@ const DefaultLimit = 25
 // DataTable defines the interface for all datatables
 // All datatable implementations should satisfy this interface
 type DataTable interface {
-	Render(c *fiber.Ctx, reqParams interface{}, extra map[string]interface{}) error
+	Render(c *fiber.Ctx, reqParams interface{}, extra map[string]interface{}, rest interface{}) error
 
 	AddColumn(columnName string, producer ProducerFunc) DataTable
 	EditColumn(columnName string, producer ProducerFunc) DataTable
@@ -67,7 +68,7 @@ type BaseDataTable[T any] struct {
 
 	// State
 	prepared        bool
-	Result          []T
+	Result          any
 	totalRecords    int64
 	filteredRecords int64
 }
@@ -103,45 +104,40 @@ func (bdt *BaseDataTable[T]) SetOverride(override OverrideDataTable) {
 
 // Render processes the datatable based on action type
 // Similar to FastAPI's render method
-func (bdt *BaseDataTable[T]) Render(c *fiber.Ctx, reqParams IDatatableRequest, extra map[string]interface{}) (*Result[interface{}], error) {
+func (bdt *BaseDataTable[T]) Render(c *fiber.Ctx, reqParams IDatatableRequest, extra map[string]interface{}, rest interface{}) error {
 	bdt.fiberCtx = c
 
 	// Parse request
 	req, err := ParseDataTableOptionFromFiberContext(c, reqParams)
 	if err != nil {
-		return nil, httperror.NewBadRequest("Invalid request format")
+		return httperror.NewBadRequest("Invalid request format")
 	}
 
 	bdt.option = req
 	bdt.Query = bdt.override.GetQuery()
 	bdt.override.BeforeProcess()
 
-	// Call action based on request action
-	var result interface{}
 	var err2 error
 
 	switch req.Action {
 	case ActionAJAX:
-		result, err2 = bdt.callAJAX(extra)
+		err2 = bdt.callAJAX(extra, rest)
 	case ActionExcel:
-		result, err2 = bdt.callExcel()
+		err2 = bdt.callExcel(rest)
 	case ActionCSV:
-		result, err2 = bdt.callCSV()
+		err2 = bdt.callCSV(rest)
 	case ActionPDF:
-		result, err2 = bdt.callPDF()
+		err2 = bdt.callPDF(rest)
 	default:
-		result, err2 = bdt.callAJAX(extra)
+		err2 = bdt.callAJAX(extra, rest)
 	}
 
 	if err2 != nil {
-		return nil, httperror.NewBadRequest(err2.Error())
+		return httperror.NewBadRequest(err2.Error())
 	}
 	bdt.override.AfterProcess()
 
-	if resp, ok := result.(*Result[interface{}]); ok {
-		return resp, nil
-	}
-	return nil, httperror.NewBadRequest("Invalid response type")
+	return nil
 }
 
 func (bdt *BaseDataTable[T]) getSearchableColumnNames() []*ColumnDefinition {
@@ -334,7 +330,8 @@ func (bdt *BaseDataTable[T]) getResultQuery() error {
 	}
 	bdt.filteredRecords = filteredRecords
 
-	tx := bdt.Query.Find(bdt.Result)
+	bdt.Result = []model.User{}
+	tx := bdt.Query.Find(&bdt.Result)
 	if tx.Error != nil {
 		return fmt.Errorf("error when finding record %v", err)
 	}
@@ -342,7 +339,7 @@ func (bdt *BaseDataTable[T]) getResultQuery() error {
 }
 
 // ProcessWithBase processes the datatable with base configuration
-func (bdt *BaseDataTable[T]) ProcessWithBase(paginate bool) ([]T, error) {
+func (bdt *BaseDataTable[T]) ProcessWithBase(paginate bool) (any, error) {
 	err := bdt.prepareQuery(paginate)
 	if err != nil {
 		return nil, fmt.Errorf("error when preparing query %v", err)
@@ -356,42 +353,55 @@ func (bdt *BaseDataTable[T]) ProcessWithBase(paginate bool) ([]T, error) {
 }
 
 // callAJAX handles AJAX action
-func (bdt *BaseDataTable[T]) callAJAX(extra map[string]interface{}) (*Result[T], error) {
+func (bdt *BaseDataTable[T]) callAJAX(extra map[string]interface{}, rest interface{}) error {
 	result, err := bdt.ProcessWithBase(true)
 	if err != nil {
-		return nil, fmt.Errorf("error when proccessing ajax %v", err)
+		return fmt.Errorf("error when proccessing ajax %v", err)
 	}
 
 	if extra == nil {
 		extra = map[string]interface{}{}
 	}
 
-	return &Result[T]{
+	dtRes := &Result{
 		TotalRecords:    bdt.totalRecords,
 		FilteredRecords: bdt.filteredRecords,
 		Items:           result,
 		Others:          extra,
-	}, nil
+	}
+
+	// Marshal sang []byte
+	data, err := json.Marshal(dtRes)
+	if err != nil {
+		return fmt.Errorf("error when marshaling datatable result %v", err)
+	}
+
+	// Unmarshal sang struct khác (chỉ một phần)
+	if err := json.Unmarshal(data, rest); err != nil {
+		return fmt.Errorf("error when unmarshaling datatable result %v", err)
+	}
+
+	return nil
 }
 
 // callExcel handles Excel export action
-func (bdt *BaseDataTable[T]) callExcel() (any, error) {
-	result, err := bdt.ProcessWithBase(false)
+func (bdt *BaseDataTable[T]) callExcel(rest interface{}) error {
+	_, err := bdt.ProcessWithBase(false)
 	if err != nil {
-		return nil, fmt.Errorf("error when exporting excel %v", err)
+		return fmt.Errorf("error when exporting excel %v", err)
 	}
 
-	return result, nil
+	return nil
 }
 
 // callCSV handles CSV export action
-func (bdt *BaseDataTable[T]) callCSV() (interface{}, error) {
-	return nil, fmt.Errorf("export csv is not supported")
+func (bdt *BaseDataTable[T]) callCSV(rest interface{}) error {
+	return fmt.Errorf("export csv is not supported")
 }
 
 // callPDF handles PDF export action
-func (bdt *BaseDataTable[T]) callPDF() (interface{}, error) {
-	return nil, fmt.Errorf("export pdf is not supported")
+func (bdt *BaseDataTable[T]) callPDF(rest interface{}) error {
+	return fmt.Errorf("export pdf is not supported")
 }
 
 // sendFileResponse sends file response for export actions

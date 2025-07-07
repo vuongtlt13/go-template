@@ -62,7 +62,7 @@ type UserRecord struct {
 }
 
 // UserDataTableResult represents the datatable result
-type UserDataTableResult = datatable.Result[interface{}]
+type UserDataTableResult = datatable.GenericResult[*UserRecord]
 
 // UserBatchRequest represents a batch request
 type UserBatchRequest struct {
