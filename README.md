@@ -290,33 +290,59 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Prerequisites
 
-Before starting development, you need to install the following tools:
+This project is HTTP (Fiber) based and does not use gRPC. Install:
 
 ```bash
-# Install gRPCurl for testing gRPC endpoints
-go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+# Go toolchain
+sudo apt-get update && sudo apt-get install -y build-essential
 
-# Install protoc-gen-go for generating Go code from protobuf
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+# Optional: Swagger generator
+go install github.com/swaggo/swag/cmd/swag@latest
 
-# Install protoc-gen-connect-go for generating Connect-Go code from protobuf
-go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+# Database migration tool
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-# Install protoc-gen-go-grpc for generating gRPC code from protobuf
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-# Install protoc-gen-validate for generating validation code from protobuf
-go install github.com/envoyproxy/protoc-gen-validate@latest
-
-# Install golangci-lint for code linting
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+# Docker (for local Postgres/Redis)
+# https://docs.docker.com/engine/install/
 ```
 
-These tools are required for:
+### Environment
 
-- `grpcurl`: Testing gRPC endpoints
-- `protoc-gen-go`: Generating Go code from Protocol Buffers
-- `protoc-gen-connect-go`: Generating Connect-Go code from Protocol Buffers
-- `protoc-gen-go-grpc`: Generating gRPC code from Protocol Buffers
-- `protoc-gen-validate`: Generating validation code from Protocol Buffers
-- `golangci-lint`: Code linting and static analysis
+Configuration is loaded from environment variables (via `.env` if present). Create one from the example:
+
+```bash
+cp .env.example .env
+# Update DB_*, JWT_*, SERVER_* as needed
+```
+
+Note: `config.yaml` is provided for reference but is not loaded unless you wire it up to Viper.
+
+### Start local infrastructure
+
+```bash
+make start-infra
+# brings up Postgres/Redis defined in docker-compose.yaml
+```
+
+### Run database migrations
+
+```bash
+make migrate-up
+```
+
+### Run servers
+
+```bash
+# Admin API
+go run main.go admin
+
+# User API
+go run main.go user
+```
+
+Both start on port 8000 by default (`SERVER_PORT`).
+
+### API Docs
+
+- Admin: Swagger UI at `http://localhost:8000/docs` (serves OpenAPI from `/openapi`)
+- User: Swagger UI at `http://localhost:8000/swagger` (serves OpenAPI from `/docs`)
